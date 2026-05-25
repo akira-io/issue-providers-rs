@@ -3,8 +3,12 @@ name: publish
 on:
   push:
     tags:
-      - "v[0-9]+.[0-9]+.[0-9]+"
-      - "v[0-9]+.[0-9]+.[0-9]+-*"
+      - "core-v[0-9]+.[0-9]+.[0-9]+"
+      - "core-v[0-9]+.[0-9]+.[0-9]+-*"
+      - "linear-v[0-9]+.[0-9]+.[0-9]+"
+      - "linear-v[0-9]+.[0-9]+.[0-9]+-*"
+      - "jira-v[0-9]+.[0-9]+.[0-9]+"
+      - "jira-v[0-9]+.[0-9]+.[0-9]+-*"
 
 permissions:
   contents: read
@@ -19,24 +23,31 @@ jobs:
 
       - uses: dtolnay/rust-toolchain@1.89.0
 
+      - name: Resolve package and version from tag
+        id: tag
+        run: |
+          TAG="${GITHUB_REF_NAME}"
+          echo "pkg=issue-provider-${TAG%%-v*}" >> "$GITHUB_OUTPUT"
+          echo "version=${TAG#*-v}" >> "$GITHUB_OUTPUT"
+
+      - name: Set package version from tag
+        run: |
+          cargo install cargo-edit --locked
+          cargo set-version -p "${{ steps.tag.outputs.pkg }}" "${{ steps.tag.outputs.version }}"
+
       - name: Authenticate to crates.io via Trusted Publishing
         uses: rust-lang/crates-io-auth-action@v1
         id: auth
 
-      - name: Publish issue-provider-core
-        env:
-          CARGO_REGISTRY_TOKEN: ${{ steps.auth.outputs.token }}
-        run: cargo publish -p issue-provider-core
-
-      - name: Publish issue-provider-linear
+      - name: Publish ${{ steps.tag.outputs.pkg }}
         env:
           CARGO_REGISTRY_TOKEN: ${{ steps.auth.outputs.token }}
         run: |
           for attempt in $(seq 1 10); do
-            if cargo publish -p issue-provider-linear; then
+            if cargo publish -p "${{ steps.tag.outputs.pkg }}"; then
               exit 0
             fi
-            echo "issue-provider-core not resolvable yet (attempt ${attempt}); retrying in 30s"
+            echo "dependencies not resolvable yet (attempt ${attempt}); retrying in 30s"
             sleep 30
           done
           exit 1
