@@ -7,12 +7,12 @@ Talks to Linear's GraphQL API and returns the neutral `issue-provider-core` mode
 transport (auth, pagination, retry) stays private; only normalized models cross the boundary.
 
 ```rust
-use issue_provider_core::{IssueId, Issues};
+use issue_provider_core::{IssueFilter, IssueId, Issues};
 use issue_provider_linear::linear;
 
 let client = linear().token("lin_api_...").build();
-let page = client.list(None).await?;                 // Issues::list
-let one = client.get(IssueId::make("ISS-1")).await?; // Issues::get
+let page = client.list(IssueFilter::default(), None).await?; // Issues::list (all)
+let one = client.get(IssueId::make("ISS-1")).await?;         // Issues::get
 ```
 
 Implements every capability: `Issues` (`get`/`list`/`create`/`update`/`delete`/`close`) plus

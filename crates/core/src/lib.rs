@@ -19,9 +19,9 @@ pub use capabilities::{
 pub use errors::{ErrorBuilder, ErrorKind, IssueError, IssueResult, error};
 pub use models::{
     Comment, CommentBuilder, CommentId, Cycle, CycleId, Issue, IssueBuilder, IssueDraft,
-    IssueDraftBuilder, IssueId, IssuePatch, IssuePatchBuilder, Label, LabelId, Milestone,
-    MilestoneId, Missing, Project, ProjectId, Set, StatusCategory, Team, TeamId, User, UserId,
-    comment, issue, issue_draft, issue_patch,
+    IssueDraftBuilder, IssueFilter, IssueFilterBuilder, IssueId, IssuePatch, IssuePatchBuilder,
+    Label, LabelId, Milestone, MilestoneId, Missing, Project, ProjectId, Set, StatusCategory, Team,
+    TeamId, User, UserId, comment, issue, issue_draft, issue_filter, issue_patch,
 };
 pub use pagination::{Page, PageCursor, PageRequest, PaginationBuilder, pagination};
 pub use registry::{

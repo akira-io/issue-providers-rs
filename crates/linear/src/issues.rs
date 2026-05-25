@@ -1,6 +1,6 @@
 use issue_provider_core::{
-    BoxFuture, ErrorKind, Issue, IssueDraft, IssueId, IssuePatch, IssueResult, Issues, Page,
-    PageCursor, PageRequest, StatusCategory, error, issue,
+    BoxFuture, ErrorKind, Issue, IssueDraft, IssueFilter, IssueId, IssuePatch, IssueResult, Issues,
+    Page, PageCursor, PageRequest, StatusCategory, error, issue,
 };
 use serde::Deserialize;
 
@@ -144,7 +144,11 @@ impl Issues for LinearClient {
         })
     }
 
-    fn list(&self, page: Option<PageRequest>) -> BoxFuture<'_, IssueResult<Page<Issue>>> {
+    fn list(
+        &self,
+        filter: IssueFilter,
+        page: Option<PageRequest>,
+    ) -> BoxFuture<'_, IssueResult<Page<Issue>>> {
         Box::pin(async move {
             #[derive(Deserialize)]
             struct Data {
@@ -163,13 +167,39 @@ impl Issues for LinearClient {
                 .and_then(PageRequest::after)
                 .map(|cursor| cursor.as_str().to_string());
 
+            let mut linear_filter = serde_json::Map::new();
+            if let Some(team) = filter.team() {
+                linear_filter.insert(
+                    "team".into(),
+                    serde_json::json!({ "id": { "eq": team.as_str() } }),
+                );
+            }
+            if let Some(project) = filter.project() {
+                linear_filter.insert(
+                    "project".into(),
+                    serde_json::json!({ "id": { "eq": project.as_str() } }),
+                );
+            }
+            if let Some(assignee) = filter.assignee() {
+                linear_filter.insert(
+                    "assignee".into(),
+                    serde_json::json!({ "id": { "eq": assignee.as_str() } }),
+                );
+            }
+            if let Some(category) = filter.category() {
+                linear_filter.insert(
+                    "state".into(),
+                    serde_json::json!({ "type": { "eq": state_type_for(category) } }),
+                );
+            }
+
             let query = format!(
-                "query($first: Int!, $after: String) {{ issues(first: $first, after: $after) {{ nodes {{ {ISSUE_FIELDS} }} pageInfo {{ hasNextPage endCursor }} }} }}"
+                "query($first: Int!, $after: String, $filter: IssueFilter) {{ issues(first: $first, after: $after, filter: $filter) {{ nodes {{ {ISSUE_FIELDS} }} pageInfo {{ hasNextPage endCursor }} }} }}"
             );
             let data: Data = self
                 .execute(
                     &query,
-                    serde_json::json!({ "first": first, "after": after }),
+                    serde_json::json!({ "first": first, "after": after, "filter": linear_filter }),
                 )
                 .await?;
 
