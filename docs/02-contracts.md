@@ -17,18 +17,36 @@ Same for `Projects`, `Milestones`, `Cycles`, `Teams`, `Users`, `Labels` over the
 
 ```rust
 let it = issue()
-    .id(IssueId::make("ISS-1"))   // required
+    .id("ISS-1")                  // required
     .title("Title")               // required
-    .status("open")               // required
-    .project(ProjectId::make("PRJ-1"))
-    .milestone(MilestoneId::make("MIL-1"))
-    .assignee(UserId::make("USR-1"))
+    .status("open")               // required (raw provider status)
+    .category(StatusCategory::Started)  // normalized lifecycle
+    .project("PRJ-1")
+    .milestone("MIL-1")
+    .assignee("USR-1")
     .priority(2)
     .updated_at("2026-05-25T00:00:00Z")
     .build();
 ```
 
 `issue()` is a typestate builder: `.build()` only exists once `id`, `title`, and `status` are set (compile-time enforced, like `vcs-providers-rs`). Optional fields default to `None` / empty.
+
+Id setters (`id`, `project`, `milestone`, `assignee`) accept either a raw string or the newtype — both compile, since the id newtypes implement `From<&str>` / `From<String>`:
+
+```rust
+issue().id("ISS-1")                  // raw string
+issue().id(IssueId::make("ISS-1"))   // newtype — both work
+```
+
+The built `Issue` always stores strong newtypes; the string form is convenience sugar.
+
+`status` is the raw provider status string (varies per tracker). `category` is the normalized lifecycle for cross-provider filtering:
+
+```rust
+pub enum StatusCategory { Backlog, Unstarted, Started, Completed, Canceled }
+```
+
+Linear `state.type`, Jira `statusCategory`, and GitHub open/closed all map onto it. `category` is optional until a provider maps it.
 
 Named entities (`Project`, `Milestone`, `Cycle`, `Team`, `User`, `Label`) are `make(id, name)` with `id()` / `name()` accessors. All ids are newtypes.
 
