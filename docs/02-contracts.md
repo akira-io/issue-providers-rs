@@ -2,16 +2,39 @@
 
 ## Capability traits
 
-Every capability follows the same shape:
+The named-entity capabilities follow the same read shape:
+
+```rust
+pub trait Projects: Send + Sync {
+    fn get(&self, id: ProjectId) -> BoxFuture<'_, IssueResult<Project>>;
+    fn list(&self, page: Option<PageRequest>) -> BoxFuture<'_, IssueResult<Page<Project>>>;
+}
+```
+
+Same for `Milestones`, `Cycles`, `Teams`, `Users`, `Labels` over their respective entity + id.
+
+`Issues` adds mutation verbs on top of the read pair:
 
 ```rust
 pub trait Issues: Send + Sync {
     fn get(&self, id: IssueId) -> BoxFuture<'_, IssueResult<Issue>>;
     fn list(&self, page: Option<PageRequest>) -> BoxFuture<'_, IssueResult<Page<Issue>>>;
+    fn create(&self, draft: IssueDraft) -> BoxFuture<'_, IssueResult<Issue>>;
+    fn update(&self, id: IssueId, patch: IssuePatch) -> BoxFuture<'_, IssueResult<Issue>>;
+    fn delete(&self, id: IssueId) -> BoxFuture<'_, IssueResult<()>>;
+    fn close(&self, id: IssueId) -> BoxFuture<'_, IssueResult<Issue>> { /* default: update(category = Completed) */ }
 }
 ```
 
-Same for `Projects`, `Milestones`, `Cycles`, `Teams`, `Users`, `Labels` over their respective entity + id. Each has a `TransportNotConfigured*` default impl returning `ErrorKind::TransportNotConfigured`.
+`close` has a default impl (sugar over `update` setting `StatusCategory::Completed`), so a provider only implements `get`/`list`/`create`/`update`/`delete`. Each capability has a `TransportNotConfigured*` default impl returning `ErrorKind::TransportNotConfigured`.
+
+`create` takes an `IssueDraft` (server assigns the id, so `Issue` is not reused). Required: `team` + `title` (typestate-enforced). `update` takes an `IssuePatch` (all fields optional; an empty patch is a no-op fetch):
+
+```rust
+let draft = issue_draft().team("TEAM-1").title("New issue")
+    .category(StatusCategory::Unstarted).build();
+let patch = issue_patch().title("Renamed").category(StatusCategory::Started).build();
+```
 
 ## Value objects
 

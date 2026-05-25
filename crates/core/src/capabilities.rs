@@ -1,7 +1,7 @@
 use crate::errors::error;
 use crate::models::{
-    Cycle, CycleId, Issue, IssueId, Label, LabelId, Milestone, MilestoneId, Project, ProjectId,
-    Team, TeamId, User, UserId,
+    Cycle, CycleId, Issue, IssueDraft, IssueId, IssuePatch, Label, LabelId, Milestone, MilestoneId,
+    Project, ProjectId, StatusCategory, Team, TeamId, User, UserId, issue_patch,
 };
 use crate::pagination::{Page, PageRequest};
 use crate::{BoxFuture, IssueResult};
@@ -43,7 +43,50 @@ macro_rules! capability {
     };
 }
 
-capability!(Issues, Issue, IssueId, TransportNotConfiguredIssues);
+pub trait Issues: Send + Sync {
+    fn get(&self, id: IssueId) -> BoxFuture<'_, IssueResult<Issue>>;
+
+    fn list(&self, page: Option<PageRequest>) -> BoxFuture<'_, IssueResult<Page<Issue>>>;
+
+    fn create(&self, draft: IssueDraft) -> BoxFuture<'_, IssueResult<Issue>>;
+
+    fn update(&self, id: IssueId, patch: IssuePatch) -> BoxFuture<'_, IssueResult<Issue>>;
+
+    fn delete(&self, id: IssueId) -> BoxFuture<'_, IssueResult<()>>;
+
+    fn close(&self, id: IssueId) -> BoxFuture<'_, IssueResult<Issue>> {
+        self.update(
+            id,
+            issue_patch().category(StatusCategory::Completed).build(),
+        )
+    }
+}
+
+#[derive(Clone, Copy, Debug, Default)]
+pub struct TransportNotConfiguredIssues;
+
+impl Issues for TransportNotConfiguredIssues {
+    fn get(&self, _id: IssueId) -> BoxFuture<'_, IssueResult<Issue>> {
+        Box::pin(async { Err(error().transport_not_configured()) })
+    }
+
+    fn list(&self, _page: Option<PageRequest>) -> BoxFuture<'_, IssueResult<Page<Issue>>> {
+        Box::pin(async { Err(error().transport_not_configured()) })
+    }
+
+    fn create(&self, _draft: IssueDraft) -> BoxFuture<'_, IssueResult<Issue>> {
+        Box::pin(async { Err(error().transport_not_configured()) })
+    }
+
+    fn update(&self, _id: IssueId, _patch: IssuePatch) -> BoxFuture<'_, IssueResult<Issue>> {
+        Box::pin(async { Err(error().transport_not_configured()) })
+    }
+
+    fn delete(&self, _id: IssueId) -> BoxFuture<'_, IssueResult<()>> {
+        Box::pin(async { Err(error().transport_not_configured()) })
+    }
+}
+
 capability!(Projects, Project, ProjectId, TransportNotConfiguredProjects);
 capability!(
     Milestones,

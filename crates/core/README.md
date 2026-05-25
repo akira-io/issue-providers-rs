@@ -20,8 +20,9 @@ let item = issue()
 
 ## Capabilities
 
-`Issues`, `Projects`, `Milestones`, `Cycles`, `Teams`, `Users`, `Labels` — each a trait with
-`get` / `list` returning paginated, normalized results.
+`Issues` (`get` / `list` / `create` / `update` / `delete` / `close`) plus read-only `Projects`,
+`Milestones`, `Cycles`, `Teams`, `Users`, `Labels` (`get` / `list`) — each a trait returning
+paginated, normalized results. `create`/`update` use the `IssueDraft` / `IssuePatch` builders.
 
 ## License
 

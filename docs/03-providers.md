@@ -52,6 +52,19 @@ The GraphQL transport (auth, pagination, retry on transient/empty responses) sta
 
 `LinearClient` implements every declared capability: `Issues` (rich mapping) plus the named-entity capabilities `Projects`, `Milestones`, `Cycles`, `Teams`, `Users`, `Labels` (each `get`/`list` over Linear's `id name` nodes with cursor pagination).
 
+`Issues` also covers mutations:
+
+```rust
+use issue_provider_core::{Issues, StatusCategory, issue_draft, issue_patch};
+
+let created = client.create(issue_draft().team("TEAM_ID").title("Bug").build()).await?;
+let updated = client.update(created.id().clone(), issue_patch().priority(1).build()).await?;
+client.close(updated.id().clone()).await?;  // sugar: update(category = Completed)
+client.delete(created.id().clone()).await?;
+```
+
+Linear has no generic "close" and addresses workflow states by id, so `create`/`update` resolve a `StatusCategory` to a concrete `stateId`: the client looks up the issue's team workflow states and picks the first whose `type` matches (`state_type_for`). `create` requires `team` because `issueCreate` requires `teamId`.
+
 ---
 
 Prev: [Contracts](./02-contracts.md) · [Index](./README.md) · Next: [Development](./04-development.md)

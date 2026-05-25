@@ -231,6 +231,267 @@ impl IssueBuilder<Set<IssueId>, Set<String>, Set<String>> {
     }
 }
 
+#[derive(Clone, Debug)]
+pub struct IssueDraft {
+    team: TeamId,
+    title: String,
+    status: Option<String>,
+    category: Option<StatusCategory>,
+    project: Option<ProjectId>,
+    milestone: Option<MilestoneId>,
+    assignee: Option<UserId>,
+    priority: Option<u8>,
+}
+
+impl IssueDraft {
+    pub fn team(&self) -> &TeamId {
+        &self.team
+    }
+
+    pub fn title(&self) -> &str {
+        &self.title
+    }
+
+    pub fn status(&self) -> Option<&str> {
+        self.status.as_deref()
+    }
+
+    pub fn category(&self) -> Option<StatusCategory> {
+        self.category
+    }
+
+    pub fn project(&self) -> Option<&ProjectId> {
+        self.project.as_ref()
+    }
+
+    pub fn milestone(&self) -> Option<&MilestoneId> {
+        self.milestone.as_ref()
+    }
+
+    pub fn assignee(&self) -> Option<&UserId> {
+        self.assignee.as_ref()
+    }
+
+    pub fn priority(&self) -> Option<u8> {
+        self.priority
+    }
+}
+
+pub struct IssueDraftBuilder<M, T> {
+    team: M,
+    title: T,
+    status: Option<String>,
+    category: Option<StatusCategory>,
+    project: Option<ProjectId>,
+    milestone: Option<MilestoneId>,
+    assignee: Option<UserId>,
+    priority: Option<u8>,
+}
+
+pub fn issue_draft() -> IssueDraftBuilder<Missing, Missing> {
+    IssueDraftBuilder {
+        team: Missing,
+        title: Missing,
+        status: None,
+        category: None,
+        project: None,
+        milestone: None,
+        assignee: None,
+        priority: None,
+    }
+}
+
+impl<T> IssueDraftBuilder<Missing, T> {
+    pub fn team(self, team: impl Into<TeamId>) -> IssueDraftBuilder<Set<TeamId>, T> {
+        IssueDraftBuilder {
+            team: Set(team.into()),
+            title: self.title,
+            status: self.status,
+            category: self.category,
+            project: self.project,
+            milestone: self.milestone,
+            assignee: self.assignee,
+            priority: self.priority,
+        }
+    }
+}
+
+impl<M> IssueDraftBuilder<M, Missing> {
+    pub fn title(self, title: impl Into<String>) -> IssueDraftBuilder<M, Set<String>> {
+        IssueDraftBuilder {
+            team: self.team,
+            title: Set(title.into()),
+            status: self.status,
+            category: self.category,
+            project: self.project,
+            milestone: self.milestone,
+            assignee: self.assignee,
+            priority: self.priority,
+        }
+    }
+}
+
+impl<M, T> IssueDraftBuilder<M, T> {
+    #[must_use]
+    pub fn status(mut self, status: impl Into<String>) -> Self {
+        self.status = Some(status.into());
+        self
+    }
+
+    #[must_use]
+    pub fn category(mut self, category: StatusCategory) -> Self {
+        self.category = Some(category);
+        self
+    }
+
+    #[must_use]
+    pub fn project(mut self, project: impl Into<ProjectId>) -> Self {
+        self.project = Some(project.into());
+        self
+    }
+
+    #[must_use]
+    pub fn milestone(mut self, milestone: impl Into<MilestoneId>) -> Self {
+        self.milestone = Some(milestone.into());
+        self
+    }
+
+    #[must_use]
+    pub fn assignee(mut self, assignee: impl Into<UserId>) -> Self {
+        self.assignee = Some(assignee.into());
+        self
+    }
+
+    #[must_use]
+    pub fn priority(mut self, priority: u8) -> Self {
+        self.priority = Some(priority);
+        self
+    }
+}
+
+impl IssueDraftBuilder<Set<TeamId>, Set<String>> {
+    pub fn build(self) -> IssueDraft {
+        IssueDraft {
+            team: self.team.0,
+            title: self.title.0,
+            status: self.status,
+            category: self.category,
+            project: self.project,
+            milestone: self.milestone,
+            assignee: self.assignee,
+            priority: self.priority,
+        }
+    }
+}
+
+#[derive(Clone, Debug, Default)]
+pub struct IssuePatch {
+    title: Option<String>,
+    status: Option<String>,
+    category: Option<StatusCategory>,
+    project: Option<ProjectId>,
+    milestone: Option<MilestoneId>,
+    assignee: Option<UserId>,
+    priority: Option<u8>,
+}
+
+impl IssuePatch {
+    pub fn title(&self) -> Option<&str> {
+        self.title.as_deref()
+    }
+
+    pub fn status(&self) -> Option<&str> {
+        self.status.as_deref()
+    }
+
+    pub fn category(&self) -> Option<StatusCategory> {
+        self.category
+    }
+
+    pub fn project(&self) -> Option<&ProjectId> {
+        self.project.as_ref()
+    }
+
+    pub fn milestone(&self) -> Option<&MilestoneId> {
+        self.milestone.as_ref()
+    }
+
+    pub fn assignee(&self) -> Option<&UserId> {
+        self.assignee.as_ref()
+    }
+
+    pub fn priority(&self) -> Option<u8> {
+        self.priority
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.title.is_none()
+            && self.status.is_none()
+            && self.category.is_none()
+            && self.project.is_none()
+            && self.milestone.is_none()
+            && self.assignee.is_none()
+            && self.priority.is_none()
+    }
+}
+
+#[derive(Default)]
+pub struct IssuePatchBuilder {
+    patch: IssuePatch,
+}
+
+pub fn issue_patch() -> IssuePatchBuilder {
+    IssuePatchBuilder::default()
+}
+
+impl IssuePatchBuilder {
+    #[must_use]
+    pub fn title(mut self, title: impl Into<String>) -> Self {
+        self.patch.title = Some(title.into());
+        self
+    }
+
+    #[must_use]
+    pub fn status(mut self, status: impl Into<String>) -> Self {
+        self.patch.status = Some(status.into());
+        self
+    }
+
+    #[must_use]
+    pub fn category(mut self, category: StatusCategory) -> Self {
+        self.patch.category = Some(category);
+        self
+    }
+
+    #[must_use]
+    pub fn project(mut self, project: impl Into<ProjectId>) -> Self {
+        self.patch.project = Some(project.into());
+        self
+    }
+
+    #[must_use]
+    pub fn milestone(mut self, milestone: impl Into<MilestoneId>) -> Self {
+        self.patch.milestone = Some(milestone.into());
+        self
+    }
+
+    #[must_use]
+    pub fn assignee(mut self, assignee: impl Into<UserId>) -> Self {
+        self.patch.assignee = Some(assignee.into());
+        self
+    }
+
+    #[must_use]
+    pub fn priority(mut self, priority: u8) -> Self {
+        self.patch.priority = Some(priority);
+        self
+    }
+
+    pub fn build(self) -> IssuePatch {
+        self.patch
+    }
+}
+
 macro_rules! named_entity {
     ($name:ident, $id:ident) => {
         #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
