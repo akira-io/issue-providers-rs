@@ -13,7 +13,7 @@ pub use capabilities::{
     Capability, Cycles, Issues, Labels, Milestones, Projects, Teams, TransportNotConfiguredCycles,
     TransportNotConfiguredIssues, TransportNotConfiguredLabels, TransportNotConfiguredMilestones,
     TransportNotConfiguredProjects, TransportNotConfiguredTeams, TransportNotConfiguredUsers,
-    Users,
+    TransportNotConfiguredViewer, Users, Viewer,
 };
 pub use errors::{ErrorBuilder, ErrorKind, IssueError, IssueResult, error};
 pub use models::{

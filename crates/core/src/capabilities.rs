@@ -15,6 +15,7 @@ pub enum Capability {
     Teams,
     Users,
     Labels,
+    Viewer,
 }
 
 macro_rules! capability {
@@ -83,6 +84,19 @@ impl Issues for TransportNotConfiguredIssues {
     }
 
     fn delete(&self, _id: IssueId) -> BoxFuture<'_, IssueResult<()>> {
+        Box::pin(async { Err(error().transport_not_configured()) })
+    }
+}
+
+pub trait Viewer: Send + Sync {
+    fn current_user(&self) -> BoxFuture<'_, IssueResult<User>>;
+}
+
+#[derive(Clone, Copy, Debug, Default)]
+pub struct TransportNotConfiguredViewer;
+
+impl Viewer for TransportNotConfiguredViewer {
+    fn current_user(&self) -> BoxFuture<'_, IssueResult<User>> {
         Box::pin(async { Err(error().transport_not_configured()) })
     }
 }

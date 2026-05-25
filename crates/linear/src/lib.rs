@@ -4,6 +4,7 @@ mod client;
 mod entities;
 mod issues;
 mod transport;
+mod viewer;
 
 pub use client::{LinearClient, LinearClientBuilder};
 pub use issues::category_from_state_type;
@@ -31,6 +32,7 @@ impl Provider for LinearProvider {
             .capability(Capability::Teams)
             .capability(Capability::Users)
             .capability(Capability::Labels)
+            .capability(Capability::Viewer)
             .build()
     }
 }

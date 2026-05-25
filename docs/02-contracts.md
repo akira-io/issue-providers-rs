@@ -13,6 +13,14 @@ pub trait Projects: Send + Sync {
 
 Same for `Milestones`, `Cycles`, `Teams`, `Users`, `Labels` over their respective entity + id.
 
+`Viewer` is a single-method capability for the authenticated account, used to validate credentials:
+
+```rust
+pub trait Viewer: Send + Sync {
+    fn current_user(&self) -> BoxFuture<'_, IssueResult<User>>;
+}
+```
+
 `Issues` adds mutation verbs on top of the read pair:
 
 ```rust
