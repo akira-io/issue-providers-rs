@@ -2,10 +2,14 @@
 name = "issue-provider-linear"
 description = "Linear issue-tracker driver for issue-provider-core"
 edition.workspace = true
+homepage.workspace = true
 license.workspace = true
 repository.workspace = true
 rust-version.workspace = true
 version.workspace = true
+readme = "README.md"
+keywords = ["linear", "issue-tracker", "graphql", "provider", "async"]
+categories = ["api-bindings", "asynchronous", "web-programming::http-client"]
 
 [dependencies]
 issue-provider-core.workspace = true

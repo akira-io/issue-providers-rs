@@ -34,9 +34,22 @@ fn main() -> IssueResult<()> {
 }
 ```
 
+To call a provider, build a credentialed client:
+
+```rust
+use issue_provider_core::{IssueId, Issues};
+use issue_provider_linear::linear;
+
+let client = linear().token("lin_api_...").build();
+let page = client.list(None).await?;                 // Issues::list
+let one = client.get(IssueId::make("ISS-1")).await?; // Issues::get
+```
+
 ## Capabilities
 
 `Issues`, `Projects`, `Milestones`, `Cycles`, `Teams`, `Users`, `Labels` — each a provider-neutral trait with `get` / `list` returning paginated results. Persistence (SQLite, etc.) is the consumer's responsibility; this crate only fetches and normalizes.
+
+See [docs/](docs/README.md) for architecture, contracts, and provider authoring.
 
 ## License
 
