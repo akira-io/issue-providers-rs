@@ -36,6 +36,13 @@ let draft = issue_draft().team("TEAM-1").title("New issue")
 let patch = issue_patch().title("Renamed").category(StatusCategory::Started).build();
 ```
 
+Both builders also expose an executing terminal that takes a client and performs the verb (sugar over `build()` + the client call), returning the resulting `Issue`:
+
+```rust
+let created = issue_draft().team("TEAM-1").title("New issue").create(&client).await?;
+let updated = issue_patch().title("Renamed").update(&client, "ISS-1").await?;
+```
+
 ## Value objects
 
 ```rust
