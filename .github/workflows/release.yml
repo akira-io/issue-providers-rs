@@ -63,7 +63,7 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
         run: |
           for s in ${{ steps.plan.outputs.shorts }}; do
-            git-cliff --config cliff.toml --include-path "crates/${s}/**" --tag "${GITHUB_REF_NAME}" --output "crates/${s}/CHANGELOG.md"
+            git-cliff --config cliff.toml --include-path "crates/${s}/**" --tag "${{ steps.plan.outputs.version }}" --output "crates/${s}/CHANGELOG.md"
           done
 
       - name: Commit versions and changelogs
