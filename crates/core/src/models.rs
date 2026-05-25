@@ -36,6 +36,7 @@ id_newtype!(CycleId);
 id_newtype!(TeamId);
 id_newtype!(UserId);
 id_newtype!(LabelId);
+id_newtype!(CommentId);
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
 pub enum StatusCategory {
@@ -552,6 +553,95 @@ impl IssuePatchBuilder {
 
     pub fn build(self) -> IssuePatch {
         self.patch
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct Comment {
+    id: CommentId,
+    body: String,
+    author: Option<UserId>,
+    created_at: Option<String>,
+}
+
+impl Comment {
+    pub fn id(&self) -> &CommentId {
+        &self.id
+    }
+
+    pub fn body(&self) -> &str {
+        &self.body
+    }
+
+    pub fn author(&self) -> Option<&UserId> {
+        self.author.as_ref()
+    }
+
+    pub fn created_at(&self) -> Option<&str> {
+        self.created_at.as_deref()
+    }
+}
+
+pub struct CommentBuilder<I, B> {
+    id: I,
+    body: B,
+    author: Option<UserId>,
+    created_at: Option<String>,
+}
+
+pub fn comment() -> CommentBuilder<Missing, Missing> {
+    CommentBuilder {
+        id: Missing,
+        body: Missing,
+        author: None,
+        created_at: None,
+    }
+}
+
+impl<B> CommentBuilder<Missing, B> {
+    pub fn id(self, id: impl Into<CommentId>) -> CommentBuilder<Set<CommentId>, B> {
+        CommentBuilder {
+            id: Set(id.into()),
+            body: self.body,
+            author: self.author,
+            created_at: self.created_at,
+        }
+    }
+}
+
+impl<I> CommentBuilder<I, Missing> {
+    pub fn body(self, body: impl Into<String>) -> CommentBuilder<I, Set<String>> {
+        CommentBuilder {
+            id: self.id,
+            body: Set(body.into()),
+            author: self.author,
+            created_at: self.created_at,
+        }
+    }
+}
+
+impl<I, B> CommentBuilder<I, B> {
+    #[must_use]
+    pub fn author(mut self, author: impl Into<UserId>) -> Self {
+        self.author = Some(author.into());
+        self
+    }
+
+    #[must_use]
+    pub fn created_at(mut self, created_at: impl Into<String>) -> Self {
+        self.created_at = Some(created_at.into());
+        self
+    }
+}
+
+impl CommentBuilder<Set<CommentId>, Set<String>> {
+    pub fn build(self) -> Comment {
+        Comment {
+            id: self.id.0,
+            body: self.body.0,
+            author: self.author,
+            created_at: self.created_at,
+        }
     }
 }
 

@@ -10,16 +10,18 @@ mod registry;
 pub type BoxFuture<'a, T> = Pin<Box<dyn Future<Output = T> + Send + 'a>>;
 
 pub use capabilities::{
-    Capability, Cycles, Issues, Labels, Milestones, Projects, Teams, TransportNotConfiguredCycles,
-    TransportNotConfiguredIssues, TransportNotConfiguredLabels, TransportNotConfiguredMilestones,
-    TransportNotConfiguredProjects, TransportNotConfiguredTeams, TransportNotConfiguredUsers,
-    TransportNotConfiguredViewer, Users, Viewer,
+    Capability, Comments, Cycles, Issues, Labels, Milestones, Projects, Teams,
+    TransportNotConfiguredComments, TransportNotConfiguredCycles, TransportNotConfiguredIssues,
+    TransportNotConfiguredLabels, TransportNotConfiguredMilestones, TransportNotConfiguredProjects,
+    TransportNotConfiguredTeams, TransportNotConfiguredUsers, TransportNotConfiguredViewer, Users,
+    Viewer,
 };
 pub use errors::{ErrorBuilder, ErrorKind, IssueError, IssueResult, error};
 pub use models::{
-    Cycle, CycleId, Issue, IssueBuilder, IssueDraft, IssueDraftBuilder, IssueId, IssuePatch,
-    IssuePatchBuilder, Label, LabelId, Milestone, MilestoneId, Missing, Project, ProjectId, Set,
-    StatusCategory, Team, TeamId, User, UserId, issue, issue_draft, issue_patch,
+    Comment, CommentBuilder, CommentId, Cycle, CycleId, Issue, IssueBuilder, IssueDraft,
+    IssueDraftBuilder, IssueId, IssuePatch, IssuePatchBuilder, Label, LabelId, Milestone,
+    MilestoneId, Missing, Project, ProjectId, Set, StatusCategory, Team, TeamId, User, UserId,
+    comment, issue, issue_draft, issue_patch,
 };
 pub use pagination::{Page, PageCursor, PageRequest, PaginationBuilder, pagination};
 pub use registry::{

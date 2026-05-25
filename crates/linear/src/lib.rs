@@ -1,6 +1,7 @@
 use issue_provider_core::{Capability, Provider, ProviderDescriptor, ProviderDescriptorBuilder};
 
 mod client;
+mod comments;
 mod entities;
 mod issues;
 mod transport;
@@ -33,6 +34,7 @@ impl Provider for LinearProvider {
             .capability(Capability::Users)
             .capability(Capability::Labels)
             .capability(Capability::Viewer)
+            .capability(Capability::Comments)
             .build()
     }
 }
