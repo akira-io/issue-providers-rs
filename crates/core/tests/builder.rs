@@ -1,5 +1,6 @@
 use issue_provider_core::{
     IssueId, LabelId, MilestoneId, ProjectId, StatusCategory, TeamId, UserId, comment, issue,
+    issue_filter,
 };
 
 #[test]
@@ -108,4 +109,19 @@ fn comment_builder_constructs() {
     assert_eq!(c.body(), "looks good");
     assert_eq!(c.author().map(UserId::as_str), Some("USR-1"));
     assert_eq!(c.created_at(), Some("2026-05-25T00:00:00Z"));
+}
+
+#[test]
+fn issue_filter_builder() {
+    let filter = issue_filter()
+        .team("TEAM-1")
+        .project("PRJ-1")
+        .category(StatusCategory::Started)
+        .build();
+
+    assert!(!filter.is_empty());
+    assert_eq!(filter.team().map(TeamId::as_str), Some("TEAM-1"));
+    assert_eq!(filter.project().map(ProjectId::as_str), Some("PRJ-1"));
+    assert_eq!(filter.category(), Some(StatusCategory::Started));
+    assert!(issue_filter().build().is_empty());
 }

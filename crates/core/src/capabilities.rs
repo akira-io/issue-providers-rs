@@ -1,8 +1,8 @@
 use crate::errors::error;
 use crate::models::{
-    Comment, CommentId, Cycle, CycleId, Issue, IssueDraft, IssueId, IssuePatch, Label, LabelId,
-    Milestone, MilestoneId, Project, ProjectId, StatusCategory, Team, TeamId, User, UserId,
-    issue_patch,
+    Comment, CommentId, Cycle, CycleId, Issue, IssueDraft, IssueFilter, IssueId, IssuePatch, Label,
+    LabelId, Milestone, MilestoneId, Project, ProjectId, StatusCategory, Team, TeamId, User,
+    UserId, issue_patch,
 };
 use crate::pagination::{Page, PageRequest};
 use crate::{BoxFuture, IssueResult};
@@ -49,7 +49,11 @@ macro_rules! capability {
 pub trait Issues: Send + Sync {
     fn get(&self, id: IssueId) -> BoxFuture<'_, IssueResult<Issue>>;
 
-    fn list(&self, page: Option<PageRequest>) -> BoxFuture<'_, IssueResult<Page<Issue>>>;
+    fn list(
+        &self,
+        filter: IssueFilter,
+        page: Option<PageRequest>,
+    ) -> BoxFuture<'_, IssueResult<Page<Issue>>>;
 
     fn create(&self, draft: IssueDraft) -> BoxFuture<'_, IssueResult<Issue>>;
 
@@ -73,7 +77,11 @@ impl Issues for TransportNotConfiguredIssues {
         Box::pin(async { Err(error().transport_not_configured()) })
     }
 
-    fn list(&self, _page: Option<PageRequest>) -> BoxFuture<'_, IssueResult<Page<Issue>>> {
+    fn list(
+        &self,
+        _filter: IssueFilter,
+        _page: Option<PageRequest>,
+    ) -> BoxFuture<'_, IssueResult<Page<Issue>>> {
         Box::pin(async { Err(error().transport_not_configured()) })
     }
 

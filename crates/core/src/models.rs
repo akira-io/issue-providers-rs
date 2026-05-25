@@ -556,6 +556,78 @@ impl IssuePatchBuilder {
     }
 }
 
+#[derive(Clone, Debug, Default, Eq, PartialEq)]
+pub struct IssueFilter {
+    team: Option<TeamId>,
+    project: Option<ProjectId>,
+    assignee: Option<UserId>,
+    category: Option<StatusCategory>,
+}
+
+impl IssueFilter {
+    pub fn team(&self) -> Option<&TeamId> {
+        self.team.as_ref()
+    }
+
+    pub fn project(&self) -> Option<&ProjectId> {
+        self.project.as_ref()
+    }
+
+    pub fn assignee(&self) -> Option<&UserId> {
+        self.assignee.as_ref()
+    }
+
+    pub fn category(&self) -> Option<StatusCategory> {
+        self.category
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.team.is_none()
+            && self.project.is_none()
+            && self.assignee.is_none()
+            && self.category.is_none()
+    }
+}
+
+#[derive(Default)]
+pub struct IssueFilterBuilder {
+    filter: IssueFilter,
+}
+
+pub fn issue_filter() -> IssueFilterBuilder {
+    IssueFilterBuilder::default()
+}
+
+impl IssueFilterBuilder {
+    #[must_use]
+    pub fn team(mut self, team: impl Into<TeamId>) -> Self {
+        self.filter.team = Some(team.into());
+        self
+    }
+
+    #[must_use]
+    pub fn project(mut self, project: impl Into<ProjectId>) -> Self {
+        self.filter.project = Some(project.into());
+        self
+    }
+
+    #[must_use]
+    pub fn assignee(mut self, assignee: impl Into<UserId>) -> Self {
+        self.filter.assignee = Some(assignee.into());
+        self
+    }
+
+    #[must_use]
+    pub fn category(mut self, category: StatusCategory) -> Self {
+        self.filter.category = Some(category);
+        self
+    }
+
+    pub fn build(self) -> IssueFilter {
+        self.filter
+    }
+}
+
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct Comment {
     id: CommentId,

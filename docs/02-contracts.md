@@ -23,12 +23,12 @@ pub trait Viewer: Send + Sync {
 
 `Comments` operates on an issue's discussion: `list_comments(issue, page)`, `post_comment(issue, body)`, `delete_comment(id)`. `Comment` is `{ id, body, author, created_at }`, built via `comment().id(..).body(..).build()`.
 
-`Issues` adds mutation verbs on top of the read pair:
+`Issues` takes a filter on `list` and adds mutation verbs on top of the read pair:
 
 ```rust
 pub trait Issues: Send + Sync {
     fn get(&self, id: IssueId) -> BoxFuture<'_, IssueResult<Issue>>;
-    fn list(&self, page: Option<PageRequest>) -> BoxFuture<'_, IssueResult<Page<Issue>>>;
+    fn list(&self, filter: IssueFilter, page: Option<PageRequest>) -> BoxFuture<'_, IssueResult<Page<Issue>>>;
     fn create(&self, draft: IssueDraft) -> BoxFuture<'_, IssueResult<Issue>>;
     fn update(&self, id: IssueId, patch: IssuePatch) -> BoxFuture<'_, IssueResult<Issue>>;
     fn delete(&self, id: IssueId) -> BoxFuture<'_, IssueResult<()>>;
@@ -36,7 +36,7 @@ pub trait Issues: Send + Sync {
 }
 ```
 
-`close` has a default impl (sugar over `update` setting `StatusCategory::Completed`), so a provider only implements `get`/`list`/`create`/`update`/`delete`. Each capability has a `TransportNotConfigured*` default impl returning `ErrorKind::TransportNotConfigured`.
+`list` takes an `IssueFilter` (`issue_filter().team(..).project(..).assignee(..).category(..).build()`; `IssueFilter::default()` = all). `close` has a default impl (sugar over `update` setting `StatusCategory::Completed`), so a provider only implements `get`/`list`/`create`/`update`/`delete`. Each capability has a `TransportNotConfigured*` default impl returning `ErrorKind::TransportNotConfigured`.
 
 `create` takes an `IssueDraft` (server assigns the id, so `Issue` is not reused). Required: `team` + `title` (typestate-enforced). `update` takes an `IssuePatch` (all fields optional; an empty patch is a no-op fetch):
 

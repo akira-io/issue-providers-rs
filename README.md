@@ -37,12 +37,13 @@ fn main() -> IssueResult<()> {
 To call a provider, build a credentialed client:
 
 ```rust
-use issue_provider_core::{IssueId, Issues};
+use issue_provider_core::{IssueFilter, IssueId, Issues, issue_filter, StatusCategory};
 use issue_provider_linear::linear;
 
 let client = linear().token("lin_api_...").build();
-let page = client.list(None).await?;                 // Issues::list
-let one = client.get(IssueId::make("ISS-1")).await?; // Issues::get
+let page = client.list(IssueFilter::default(), None).await?;             // all issues
+let mine = client.list(issue_filter().category(StatusCategory::Started).build(), None).await?;
+let one = client.get(IssueId::make("ISS-1")).await?;                     // Issues::get
 ```
 
 `Issues` also covers mutations (`create`, `update`, `delete`, `close`):
