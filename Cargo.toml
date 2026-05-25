@@ -8,6 +8,7 @@ resolver = "3"
 
 [workspace.package]
 edition = "2024"
+homepage = "https://github.com/akira-io/issue-providers-rs"
 license = "MIT OR Apache-2.0"
 repository = "https://github.com/akira-io/issue-providers-rs"
 rust-version = "1.89"

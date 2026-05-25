@@ -31,4 +31,12 @@ jobs:
       - name: Publish issue-provider-linear
         env:
           CARGO_REGISTRY_TOKEN: ${{ steps.auth.outputs.token }}
-        run: cargo publish -p issue-provider-linear
+        run: |
+          for attempt in $(seq 1 10); do
+            if cargo publish -p issue-provider-linear; then
+              exit 0
+            fi
+            echo "issue-provider-core not resolvable yet (attempt ${attempt}); retrying in 30s"
+            sleep 30
+          done
+          exit 1

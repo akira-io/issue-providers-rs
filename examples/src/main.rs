@@ -1,7 +1,8 @@
-use issue_provider_core::{IssueResult, provider};
+use issue_provider_core::{IssueResult, Issues, provider};
 use issue_provider_linear::linear;
 
-fn main() -> IssueResult<()> {
+#[tokio::main]
+async fn main() -> IssueResult<()> {
     let registry = provider().register(linear())?.build();
 
     for descriptor in registry.descriptors() {
@@ -10,6 +11,17 @@ fn main() -> IssueResult<()> {
             descriptor.display_name(),
             descriptor.id().as_str()
         );
+    }
+
+    if let Ok(token) = std::env::var("LINEAR_TOKEN") {
+        let client = linear().token(token).build();
+        let page = client.list(None).await?;
+        println!("fetched {} issue(s)", page.items().len());
+        for item in page.items() {
+            println!("- {} [{}]", item.title(), item.status());
+        }
+    } else {
+        println!("set LINEAR_TOKEN to fetch live issues");
     }
 
     Ok(())

@@ -10,6 +10,7 @@ publish = false
 [dependencies]
 issue-provider-core.workspace = true
 issue-provider-linear = { path = "../crates/linear" }
+tokio = { version = "1", features = ["rt-multi-thread", "macros"] }
 
 [lints]
 workspace = true

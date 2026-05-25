@@ -2,10 +2,14 @@
 name = "issue-provider-core"
 description = "Provider-neutral contracts for issue trackers (Linear, Jira, ...)"
 edition.workspace = true
+homepage.workspace = true
 license.workspace = true
 repository.workspace = true
 rust-version.workspace = true
 version.workspace = true
+readme = "README.md"
+keywords = ["issue-tracker", "provider", "linear", "jira", "async"]
+categories = ["api-bindings", "asynchronous"]
 
 [dependencies]
 serde.workspace = true
