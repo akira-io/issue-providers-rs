@@ -1,0 +1,15 @@
+[package]
+name = "issue-provider-linear"
+description = "Linear issue-tracker driver for issue-provider-core"
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+version.workspace = true
+
+[dependencies]
+issue-provider-core.workspace = true
+serde.workspace = true
+
+[lints]
+workspace = true
