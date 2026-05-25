@@ -3,8 +3,14 @@ name: publish
 on:
   push:
     tags:
-      - "v[0-9]+.[0-9]+.[0-9]+"
-      - "v[0-9]+.[0-9]+.[0-9]+-*"
+      - "core-v[0-9]+.[0-9]+.[0-9]+"
+      - "core-v[0-9]+.[0-9]+.[0-9]+-*"
+      - "linear-v[0-9]+.[0-9]+.[0-9]+"
+      - "linear-v[0-9]+.[0-9]+.[0-9]+-*"
+      - "jira-v[0-9]+.[0-9]+.[0-9]+"
+      - "jira-v[0-9]+.[0-9]+.[0-9]+-*"
+      - "workspace-v[0-9]+.[0-9]+.[0-9]+"
+      - "workspace-v[0-9]+.[0-9]+.[0-9]+-*"
 
 permissions:
   contents: read
@@ -19,24 +25,50 @@ jobs:
 
       - uses: dtolnay/rust-toolchain@1.89.0
 
+      - name: Set versions and resolve packages from tag
+        id: plan
+        run: |
+          cargo install cargo-edit --locked
+          TAG="${GITHUB_REF_NAME}"
+          PREFIX="${TAG%%-v*}"
+          VERSION="${TAG#*-v}"
+          if [ "$PREFIX" = "workspace" ]; then
+            cargo set-version --workspace "$VERSION"
+            PKGS="$(cargo metadata --no-deps --format-version 1 | jq -r '.packages[] | select(.publish != []) | .name')"
+          else
+            PKG="issue-provider-${PREFIX}"
+            cargo set-version -p "$PKG" "$VERSION"
+            PKGS="$PKG"
+          fi
+          ORDERED=""
+          if echo "$PKGS" | grep -qx "issue-provider-core"; then
+            ORDERED="issue-provider-core"
+          fi
+          for p in $PKGS; do
+            [ "$p" = "issue-provider-core" ] || ORDERED="${ORDERED} ${p}"
+          done
+          echo "pkgs=$(echo "$ORDERED" | xargs)" >> "$GITHUB_OUTPUT"
+
       - name: Authenticate to crates.io via Trusted Publishing
         uses: rust-lang/crates-io-auth-action@v1
         id: auth
 
-      - name: Publish issue-provider-core
-        env:
-          CARGO_REGISTRY_TOKEN: ${{ steps.auth.outputs.token }}
-        run: cargo publish -p issue-provider-core
-
-      - name: Publish issue-provider-linear
+      - name: Publish ${{ steps.plan.outputs.pkgs }}
         env:
           CARGO_REGISTRY_TOKEN: ${{ steps.auth.outputs.token }}
         run: |
-          for attempt in $(seq 1 10); do
-            if cargo publish -p issue-provider-linear; then
-              exit 0
+          for pkg in ${{ steps.plan.outputs.pkgs }}; do
+            published=0
+            for attempt in $(seq 1 10); do
+              if cargo publish -p "$pkg"; then
+                published=1
+                break
+              fi
+              echo "${pkg} dependencies not resolvable yet (attempt ${attempt}); retrying in 30s"
+              sleep 30
+            done
+            if [ "$published" != "1" ]; then
+              echo "failed to publish ${pkg}"
+              exit 1
             fi
-            echo "issue-provider-core not resolvable yet (attempt ${attempt}); retrying in 30s"
-            sleep 30
           done
-          exit 1
