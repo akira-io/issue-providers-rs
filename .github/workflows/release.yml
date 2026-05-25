@@ -9,6 +9,8 @@ on:
       - "linear-v[0-9]+.[0-9]+.[0-9]+-*"
       - "jira-v[0-9]+.[0-9]+.[0-9]+"
       - "jira-v[0-9]+.[0-9]+.[0-9]+-*"
+      - "workspace-v[0-9]+.[0-9]+.[0-9]+"
+      - "workspace-v[0-9]+.[0-9]+.[0-9]+-*"
 
 permissions:
   contents: write
@@ -22,17 +24,17 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Resolve package and version from tag
-        id: tag
-        run: |
-          TAG="${GITHUB_REF_NAME}"
-          echo "pkg=issue-provider-${TAG%%-v*}" >> "$GITHUB_OUTPUT"
-          echo "version=${TAG#*-v}" >> "$GITHUB_OUTPUT"
-
-      - name: Set package version from tag
+      - name: Set version from tag
         run: |
           cargo install cargo-edit --locked
-          cargo set-version -p "${{ steps.tag.outputs.pkg }}" "${{ steps.tag.outputs.version }}"
+          TAG="${GITHUB_REF_NAME}"
+          PREFIX="${TAG%%-v*}"
+          VERSION="${TAG#*-v}"
+          if [ "$PREFIX" = "workspace" ]; then
+            cargo set-version --workspace "$VERSION"
+          else
+            cargo set-version -p "issue-provider-${PREFIX}" "$VERSION"
+          fi
           cargo update --workspace --offline || cargo update --workspace
 
       - name: Install git-cliff
