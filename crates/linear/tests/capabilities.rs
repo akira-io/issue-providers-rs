@@ -12,6 +12,7 @@ fn descriptor_supports_all_named_capabilities() {
         Capability::Teams,
         Capability::Users,
         Capability::Labels,
+        Capability::Viewer,
     ] {
         assert!(
             descriptor.supports(capability),
@@ -29,7 +30,8 @@ fn client_implements_named_capability_traits() {
             + issue_provider_core::Cycles
             + issue_provider_core::Teams
             + issue_provider_core::Users
-            + issue_provider_core::Labels,
+            + issue_provider_core::Labels
+            + issue_provider_core::Viewer,
     {
     }
 
