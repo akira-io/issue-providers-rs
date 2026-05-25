@@ -21,7 +21,8 @@ jobs:
       - name: Set workspace version from tag
         run: |
           VERSION="${GITHUB_REF_NAME#v}"
-          sed -i -E "0,/^version = \".*\"/s//version = \"${VERSION}\"/" Cargo.toml
+          cargo install cargo-edit --locked
+          cargo set-version --workspace "${VERSION}"
           cargo update --workspace --offline || cargo update --workspace
 
       - name: Install git-cliff
