@@ -50,7 +50,7 @@ let one = client.get(IssueId::make("ISS-1")).await?;   // Issues::get
 
 The GraphQL transport (auth, pagination, retry on transient/empty responses) stays private to the provider crate; only normalized models cross the boundary. Linear's `state.type` maps to `StatusCategory` via `category_from_state_type`.
 
-`LinearClient` implements every declared capability: `Issues` (rich mapping), the named-entity capabilities `Projects`, `Milestones`, `Cycles`, `Teams`, `Users`, `Labels` (each `get`/`list` over Linear's `id name` nodes with cursor pagination), and `Viewer` (`current_user` via Linear's `viewer { id name }`, for credential validation).
+`LinearClient` implements every declared capability: `Issues` (rich mapping), the named-entity capabilities `Projects`, `Milestones`, `Cycles`, `Teams`, `Users`, `Labels` (each `get`/`list` over Linear's `id name` nodes with cursor pagination), `Viewer` (`current_user` via Linear's `viewer { id name }`, for credential validation), and `Comments` (`list_comments`/`post_comment`/`delete_comment` via Linear's issue `comments` connection and `commentCreate`/`commentDelete`).
 
 `Issues` also covers mutations:
 

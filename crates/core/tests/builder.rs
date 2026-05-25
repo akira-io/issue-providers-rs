@@ -1,5 +1,5 @@
 use issue_provider_core::{
-    IssueId, LabelId, MilestoneId, ProjectId, StatusCategory, TeamId, UserId, issue,
+    IssueId, LabelId, MilestoneId, ProjectId, StatusCategory, TeamId, UserId, comment, issue,
 };
 
 #[test]
@@ -93,4 +93,19 @@ fn issue_builder_captures_enriched_fields() {
             .collect::<Vec<_>>(),
         vec!["L-1", "L-2", "L-3"]
     );
+}
+
+#[test]
+fn comment_builder_constructs() {
+    let c = comment()
+        .id("CMT-1")
+        .body("looks good")
+        .author("USR-1")
+        .created_at("2026-05-25T00:00:00Z")
+        .build();
+
+    assert_eq!(c.id().as_str(), "CMT-1");
+    assert_eq!(c.body(), "looks good");
+    assert_eq!(c.author().map(UserId::as_str), Some("USR-1"));
+    assert_eq!(c.created_at(), Some("2026-05-25T00:00:00Z"));
 }

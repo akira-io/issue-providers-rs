@@ -1,7 +1,8 @@
 use crate::errors::error;
 use crate::models::{
-    Cycle, CycleId, Issue, IssueDraft, IssueId, IssuePatch, Label, LabelId, Milestone, MilestoneId,
-    Project, ProjectId, StatusCategory, Team, TeamId, User, UserId, issue_patch,
+    Comment, CommentId, Cycle, CycleId, Issue, IssueDraft, IssueId, IssuePatch, Label, LabelId,
+    Milestone, MilestoneId, Project, ProjectId, StatusCategory, Team, TeamId, User, UserId,
+    issue_patch,
 };
 use crate::pagination::{Page, PageRequest};
 use crate::{BoxFuture, IssueResult};
@@ -16,6 +17,7 @@ pub enum Capability {
     Users,
     Labels,
     Viewer,
+    Comments,
 }
 
 macro_rules! capability {
@@ -97,6 +99,39 @@ pub struct TransportNotConfiguredViewer;
 
 impl Viewer for TransportNotConfiguredViewer {
     fn current_user(&self) -> BoxFuture<'_, IssueResult<User>> {
+        Box::pin(async { Err(error().transport_not_configured()) })
+    }
+}
+
+pub trait Comments: Send + Sync {
+    fn list_comments(
+        &self,
+        issue: IssueId,
+        page: Option<PageRequest>,
+    ) -> BoxFuture<'_, IssueResult<Page<Comment>>>;
+
+    fn post_comment(&self, issue: IssueId, body: String) -> BoxFuture<'_, IssueResult<Comment>>;
+
+    fn delete_comment(&self, id: CommentId) -> BoxFuture<'_, IssueResult<()>>;
+}
+
+#[derive(Clone, Copy, Debug, Default)]
+pub struct TransportNotConfiguredComments;
+
+impl Comments for TransportNotConfiguredComments {
+    fn list_comments(
+        &self,
+        _issue: IssueId,
+        _page: Option<PageRequest>,
+    ) -> BoxFuture<'_, IssueResult<Page<Comment>>> {
+        Box::pin(async { Err(error().transport_not_configured()) })
+    }
+
+    fn post_comment(&self, _issue: IssueId, _body: String) -> BoxFuture<'_, IssueResult<Comment>> {
+        Box::pin(async { Err(error().transport_not_configured()) })
+    }
+
+    fn delete_comment(&self, _id: CommentId) -> BoxFuture<'_, IssueResult<()>> {
         Box::pin(async { Err(error().transport_not_configured()) })
     }
 }

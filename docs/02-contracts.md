@@ -21,6 +21,8 @@ pub trait Viewer: Send + Sync {
 }
 ```
 
+`Comments` operates on an issue's discussion: `list_comments(issue, page)`, `post_comment(issue, body)`, `delete_comment(id)`. `Comment` is `{ id, body, author, created_at }`, built via `comment().id(..).body(..).build()`.
+
 `Issues` adds mutation verbs on top of the read pair:
 
 ```rust
