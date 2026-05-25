@@ -54,6 +54,8 @@ let it = issue()
 
 `issue()` is a typestate builder: `.build()` only exists once `id`, `title`, and `status` are set (compile-time enforced, like `vcs-providers-rs`). Optional fields default to `None` / empty.
 
+Beyond the fields above, `Issue` also carries `identifier` (human key, e.g. `ENG-123`), `description`, `url`, `created_at`, `author` (`UserId`), `team` (`TeamId`), and `labels` (`Vec<LabelId>`, set via `.labels([...])` or repeated `.label(...)`). All optional/empty by default; providers populate what they expose.
+
 Id setters (`id`, `project`, `milestone`, `assignee`) accept either a raw string or the newtype — both compile, since the id newtypes implement `From<&str>` / `From<String>`:
 
 ```rust

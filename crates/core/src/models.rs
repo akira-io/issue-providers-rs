@@ -46,17 +46,30 @@ pub enum StatusCategory {
     Canceled,
 }
 
+#[derive(Clone, Debug, Default, Eq, PartialEq, Serialize, Deserialize)]
+struct IssueMeta {
+    category: Option<StatusCategory>,
+    project: Option<ProjectId>,
+    milestone: Option<MilestoneId>,
+    assignee: Option<UserId>,
+    author: Option<UserId>,
+    team: Option<TeamId>,
+    labels: Vec<LabelId>,
+    priority: Option<u8>,
+    identifier: Option<String>,
+    description: Option<String>,
+    url: Option<String>,
+    created_at: Option<String>,
+    updated_at: Option<String>,
+}
+
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct Issue {
     id: IssueId,
     title: String,
     status: String,
-    category: Option<StatusCategory>,
-    project: Option<ProjectId>,
-    milestone: Option<MilestoneId>,
-    assignee: Option<UserId>,
-    priority: Option<u8>,
-    updated_at: String,
+    #[serde(flatten)]
+    meta: IssueMeta,
 }
 
 impl Issue {
@@ -73,27 +86,55 @@ impl Issue {
     }
 
     pub fn category(&self) -> Option<StatusCategory> {
-        self.category
+        self.meta.category
     }
 
     pub fn project(&self) -> Option<&ProjectId> {
-        self.project.as_ref()
+        self.meta.project.as_ref()
     }
 
     pub fn milestone(&self) -> Option<&MilestoneId> {
-        self.milestone.as_ref()
+        self.meta.milestone.as_ref()
     }
 
     pub fn assignee(&self) -> Option<&UserId> {
-        self.assignee.as_ref()
+        self.meta.assignee.as_ref()
+    }
+
+    pub fn author(&self) -> Option<&UserId> {
+        self.meta.author.as_ref()
+    }
+
+    pub fn team(&self) -> Option<&TeamId> {
+        self.meta.team.as_ref()
+    }
+
+    pub fn labels(&self) -> &[LabelId] {
+        &self.meta.labels
     }
 
     pub fn priority(&self) -> Option<u8> {
-        self.priority
+        self.meta.priority
+    }
+
+    pub fn identifier(&self) -> Option<&str> {
+        self.meta.identifier.as_deref()
+    }
+
+    pub fn description(&self) -> Option<&str> {
+        self.meta.description.as_deref()
+    }
+
+    pub fn url(&self) -> Option<&str> {
+        self.meta.url.as_deref()
+    }
+
+    pub fn created_at(&self) -> Option<&str> {
+        self.meta.created_at.as_deref()
     }
 
     pub fn updated_at(&self) -> &str {
-        &self.updated_at
+        self.meta.updated_at.as_deref().unwrap_or_default()
     }
 }
 
@@ -107,12 +148,7 @@ pub struct IssueBuilder<I, T, S> {
     id: I,
     title: T,
     status: S,
-    category: Option<StatusCategory>,
-    project: Option<ProjectId>,
-    milestone: Option<MilestoneId>,
-    assignee: Option<UserId>,
-    priority: Option<u8>,
-    updated_at: Option<String>,
+    meta: IssueMeta,
 }
 
 pub fn issue() -> IssueBuilder<Missing, Missing, Missing> {
@@ -120,12 +156,7 @@ pub fn issue() -> IssueBuilder<Missing, Missing, Missing> {
         id: Missing,
         title: Missing,
         status: Missing,
-        category: None,
-        project: None,
-        milestone: None,
-        assignee: None,
-        priority: None,
-        updated_at: None,
+        meta: IssueMeta::default(),
     }
 }
 
@@ -135,12 +166,7 @@ impl<T, S> IssueBuilder<Missing, T, S> {
             id: Set(id.into()),
             title: self.title,
             status: self.status,
-            category: self.category,
-            project: self.project,
-            milestone: self.milestone,
-            assignee: self.assignee,
-            priority: self.priority,
-            updated_at: self.updated_at,
+            meta: self.meta,
         }
     }
 }
@@ -151,12 +177,7 @@ impl<I, S> IssueBuilder<I, Missing, S> {
             id: self.id,
             title: Set(title.into()),
             status: self.status,
-            category: self.category,
-            project: self.project,
-            milestone: self.milestone,
-            assignee: self.assignee,
-            priority: self.priority,
-            updated_at: self.updated_at,
+            meta: self.meta,
         }
     }
 }
@@ -167,12 +188,7 @@ impl<I, T> IssueBuilder<I, T, Missing> {
             id: self.id,
             title: self.title,
             status: Set(status.into()),
-            category: self.category,
-            project: self.project,
-            milestone: self.milestone,
-            assignee: self.assignee,
-            priority: self.priority,
-            updated_at: self.updated_at,
+            meta: self.meta,
         }
     }
 }
@@ -180,37 +196,89 @@ impl<I, T> IssueBuilder<I, T, Missing> {
 impl<I, T, S> IssueBuilder<I, T, S> {
     #[must_use]
     pub fn category(mut self, category: StatusCategory) -> Self {
-        self.category = Some(category);
+        self.meta.category = Some(category);
         self
     }
 
     #[must_use]
     pub fn project(mut self, project: impl Into<ProjectId>) -> Self {
-        self.project = Some(project.into());
+        self.meta.project = Some(project.into());
         self
     }
 
     #[must_use]
     pub fn milestone(mut self, milestone: impl Into<MilestoneId>) -> Self {
-        self.milestone = Some(milestone.into());
+        self.meta.milestone = Some(milestone.into());
         self
     }
 
     #[must_use]
     pub fn assignee(mut self, assignee: impl Into<UserId>) -> Self {
-        self.assignee = Some(assignee.into());
+        self.meta.assignee = Some(assignee.into());
+        self
+    }
+
+    #[must_use]
+    pub fn author(mut self, author: impl Into<UserId>) -> Self {
+        self.meta.author = Some(author.into());
+        self
+    }
+
+    #[must_use]
+    pub fn team(mut self, team: impl Into<TeamId>) -> Self {
+        self.meta.team = Some(team.into());
+        self
+    }
+
+    #[must_use]
+    pub fn labels<I2, L>(mut self, labels: I2) -> Self
+    where
+        I2: IntoIterator<Item = L>,
+        L: Into<LabelId>,
+    {
+        self.meta.labels = labels.into_iter().map(Into::into).collect();
+        self
+    }
+
+    #[must_use]
+    pub fn label(mut self, label: impl Into<LabelId>) -> Self {
+        self.meta.labels.push(label.into());
         self
     }
 
     #[must_use]
     pub fn priority(mut self, priority: u8) -> Self {
-        self.priority = Some(priority);
+        self.meta.priority = Some(priority);
+        self
+    }
+
+    #[must_use]
+    pub fn identifier(mut self, identifier: impl Into<String>) -> Self {
+        self.meta.identifier = Some(identifier.into());
+        self
+    }
+
+    #[must_use]
+    pub fn description(mut self, description: impl Into<String>) -> Self {
+        self.meta.description = Some(description.into());
+        self
+    }
+
+    #[must_use]
+    pub fn url(mut self, url: impl Into<String>) -> Self {
+        self.meta.url = Some(url.into());
+        self
+    }
+
+    #[must_use]
+    pub fn created_at(mut self, created_at: impl Into<String>) -> Self {
+        self.meta.created_at = Some(created_at.into());
         self
     }
 
     #[must_use]
     pub fn updated_at(mut self, updated_at: impl Into<String>) -> Self {
-        self.updated_at = Some(updated_at.into());
+        self.meta.updated_at = Some(updated_at.into());
         self
     }
 }
@@ -221,12 +289,7 @@ impl IssueBuilder<Set<IssueId>, Set<String>, Set<String>> {
             id: self.id.0,
             title: self.title.0,
             status: self.status.0,
-            category: self.category,
-            project: self.project,
-            milestone: self.milestone,
-            assignee: self.assignee,
-            priority: self.priority,
-            updated_at: self.updated_at.unwrap_or_default(),
+            meta: self.meta,
         }
     }
 }

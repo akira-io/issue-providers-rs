@@ -16,19 +16,30 @@ fn state_type_for(category: StatusCategory) -> &'static str {
     }
 }
 
-const ISSUE_FIELDS: &str =
-    "id title priority updatedAt state { name type } project { id } assignee { id }";
+const ISSUE_FIELDS: &str = "id identifier title description url priority createdAt updatedAt state { name type } project { id } assignee { id } creator { id } team { id } labels { nodes { id } }";
 
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
 struct IssueNode {
     id: String,
+    identifier: Option<String>,
     title: String,
+    description: Option<String>,
+    url: Option<String>,
     priority: Option<f64>,
+    created_at: Option<String>,
     updated_at: Option<String>,
     state: Option<StateNode>,
     project: Option<RefNode>,
     assignee: Option<RefNode>,
+    creator: Option<RefNode>,
+    team: Option<RefNode>,
+    labels: Option<LabelConnection>,
+}
+
+#[derive(Deserialize)]
+struct LabelConnection {
+    nodes: Vec<RefNode>,
 }
 
 #[derive(Deserialize)]
@@ -83,8 +94,29 @@ fn map_issue(node: IssueNode) -> Issue {
     if let Some(assignee) = node.assignee {
         builder = builder.assignee(assignee.id);
     }
+    if let Some(creator) = node.creator {
+        builder = builder.author(creator.id);
+    }
+    if let Some(team) = node.team {
+        builder = builder.team(team.id);
+    }
+    if let Some(labels) = node.labels {
+        builder = builder.labels(labels.nodes.into_iter().map(|label| label.id));
+    }
     if let Some(priority) = node.priority {
         builder = builder.priority(priority as u8);
+    }
+    if let Some(identifier) = node.identifier {
+        builder = builder.identifier(identifier);
+    }
+    if let Some(description) = node.description {
+        builder = builder.description(description);
+    }
+    if let Some(url) = node.url {
+        builder = builder.url(url);
+    }
+    if let Some(created_at) = node.created_at {
+        builder = builder.created_at(created_at);
     }
     if let Some(updated_at) = node.updated_at {
         builder = builder.updated_at(updated_at);
