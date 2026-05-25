@@ -31,6 +31,15 @@ let it = issue()
 
 `issue()` is a typestate builder: `.build()` only exists once `id`, `title`, and `status` are set (compile-time enforced, like `vcs-providers-rs`). Optional fields default to `None` / empty.
 
+Id setters (`id`, `project`, `milestone`, `assignee`) accept either a raw string or the newtype — both compile, since the id newtypes implement `From<&str>` / `From<String>`:
+
+```rust
+issue().id("ISS-1")                  // raw string
+issue().id(IssueId::make("ISS-1"))   // newtype — both work
+```
+
+The built `Issue` always stores strong newtypes; the string form is convenience sugar.
+
 `status` is the raw provider status string (varies per tracker). `category` is the normalized lifecycle for cross-provider filtering:
 
 ```rust
