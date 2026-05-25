@@ -1,4 +1,4 @@
-use issue_provider_core::{IssueId, MilestoneId, ProjectId, UserId, issue};
+use issue_provider_core::{IssueId, MilestoneId, ProjectId, StatusCategory, UserId, issue};
 
 #[test]
 fn issue_builder_constructs_with_required_and_optional_fields() {
@@ -6,6 +6,7 @@ fn issue_builder_constructs_with_required_and_optional_fields() {
         .id(IssueId::make("ISS-1"))
         .title("Wire up sync")
         .status("open")
+        .category(StatusCategory::Started)
         .project(ProjectId::make("PRJ-1"))
         .milestone(MilestoneId::make("MIL-1"))
         .assignee(UserId::make("USR-1"))
@@ -16,6 +17,7 @@ fn issue_builder_constructs_with_required_and_optional_fields() {
     assert_eq!(built.id().as_str(), "ISS-1");
     assert_eq!(built.title(), "Wire up sync");
     assert_eq!(built.status(), "open");
+    assert_eq!(built.category(), Some(StatusCategory::Started));
     assert_eq!(built.project().map(ProjectId::as_str), Some("PRJ-1"));
     assert_eq!(built.milestone().map(MilestoneId::as_str), Some("MIL-1"));
     assert_eq!(built.assignee().map(UserId::as_str), Some("USR-1"));
@@ -31,6 +33,7 @@ fn issue_builder_defaults_optionals_to_none() {
         .status("todo")
         .build();
 
+    assert_eq!(built.category(), None);
     assert!(built.project().is_none());
     assert!(built.milestone().is_none());
     assert!(built.assignee().is_none());

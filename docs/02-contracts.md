@@ -19,7 +19,8 @@ Same for `Projects`, `Milestones`, `Cycles`, `Teams`, `Users`, `Labels` over the
 let it = issue()
     .id(IssueId::make("ISS-1"))   // required
     .title("Title")               // required
-    .status("open")               // required
+    .status("open")               // required (raw provider status)
+    .category(StatusCategory::Started)  // normalized lifecycle
     .project(ProjectId::make("PRJ-1"))
     .milestone(MilestoneId::make("MIL-1"))
     .assignee(UserId::make("USR-1"))
@@ -29,6 +30,14 @@ let it = issue()
 ```
 
 `issue()` is a typestate builder: `.build()` only exists once `id`, `title`, and `status` are set (compile-time enforced, like `vcs-providers-rs`). Optional fields default to `None` / empty.
+
+`status` is the raw provider status string (varies per tracker). `category` is the normalized lifecycle for cross-provider filtering:
+
+```rust
+pub enum StatusCategory { Backlog, Unstarted, Started, Completed, Canceled }
+```
+
+Linear `state.type`, Jira `statusCategory`, and GitHub open/closed all map onto it. `category` is optional until a provider maps it.
 
 Named entities (`Project`, `Milestone`, `Cycle`, `Team`, `User`, `Label`) are `make(id, name)` with `id()` / `name()` accessors. All ids are newtypes.
 

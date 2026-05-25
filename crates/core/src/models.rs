@@ -25,11 +25,21 @@ id_newtype!(TeamId);
 id_newtype!(UserId);
 id_newtype!(LabelId);
 
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
+pub enum StatusCategory {
+    Backlog,
+    Unstarted,
+    Started,
+    Completed,
+    Canceled,
+}
+
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct Issue {
     id: IssueId,
     title: String,
     status: String,
+    category: Option<StatusCategory>,
     project: Option<ProjectId>,
     milestone: Option<MilestoneId>,
     assignee: Option<UserId>,
@@ -48,6 +58,10 @@ impl Issue {
 
     pub fn status(&self) -> &str {
         &self.status
+    }
+
+    pub fn category(&self) -> Option<StatusCategory> {
+        self.category
     }
 
     pub fn project(&self) -> Option<&ProjectId> {
@@ -81,6 +95,7 @@ pub struct IssueBuilder<I, T, S> {
     id: I,
     title: T,
     status: S,
+    category: Option<StatusCategory>,
     project: Option<ProjectId>,
     milestone: Option<MilestoneId>,
     assignee: Option<UserId>,
@@ -93,6 +108,7 @@ pub fn issue() -> IssueBuilder<Missing, Missing, Missing> {
         id: Missing,
         title: Missing,
         status: Missing,
+        category: None,
         project: None,
         milestone: None,
         assignee: None,
@@ -107,6 +123,7 @@ impl<T, S> IssueBuilder<Missing, T, S> {
             id: Set(id),
             title: self.title,
             status: self.status,
+            category: self.category,
             project: self.project,
             milestone: self.milestone,
             assignee: self.assignee,
@@ -122,6 +139,7 @@ impl<I, S> IssueBuilder<I, Missing, S> {
             id: self.id,
             title: Set(title.into()),
             status: self.status,
+            category: self.category,
             project: self.project,
             milestone: self.milestone,
             assignee: self.assignee,
@@ -137,6 +155,7 @@ impl<I, T> IssueBuilder<I, T, Missing> {
             id: self.id,
             title: self.title,
             status: Set(status.into()),
+            category: self.category,
             project: self.project,
             milestone: self.milestone,
             assignee: self.assignee,
@@ -147,6 +166,12 @@ impl<I, T> IssueBuilder<I, T, Missing> {
 }
 
 impl<I, T, S> IssueBuilder<I, T, S> {
+    #[must_use]
+    pub fn category(mut self, category: StatusCategory) -> Self {
+        self.category = Some(category);
+        self
+    }
+
     #[must_use]
     pub fn project(mut self, project: ProjectId) -> Self {
         self.project = Some(project);
@@ -184,6 +209,7 @@ impl IssueBuilder<Set<IssueId>, Set<String>, Set<String>> {
             id: self.id.0,
             title: self.title.0,
             status: self.status.0,
+            category: self.category,
             project: self.project,
             milestone: self.milestone,
             assignee: self.assignee,
