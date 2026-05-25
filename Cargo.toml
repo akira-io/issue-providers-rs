@@ -12,12 +12,12 @@ homepage = "https://github.com/akira-io/issue-providers-rs"
 license = "MIT OR Apache-2.0"
 repository = "https://github.com/akira-io/issue-providers-rs"
 rust-version = "1.89"
-version = "0.1.0"
+version = "0.2.0"
 
 [workspace.dependencies]
 futures = "0.3.31"
 serde = { version = "1.0.228", features = ["derive"] }
-issue-provider-core = { path = "crates/core", version = "0.1.0" }
+issue-provider-core = { path = "crates/core", version = "0.2.0" }
 
 [workspace.lints.rust]
 unsafe_code = "forbid"
