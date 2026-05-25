@@ -1,4 +1,4 @@
-use issue_provider_core::{MilestoneId, ProjectId, StatusCategory, UserId, issue};
+use issue_provider_core::{IssueId, MilestoneId, ProjectId, StatusCategory, UserId, issue};
 
 #[test]
 fn issue_builder_constructs_with_required_and_optional_fields() {
@@ -35,4 +35,26 @@ fn issue_builder_defaults_optionals_to_none() {
     assert!(built.assignee().is_none());
     assert_eq!(built.priority(), None);
     assert_eq!(built.updated_at(), "");
+}
+
+#[test]
+fn builder_accepts_raw_strings_or_newtypes() {
+    let from_strings = issue()
+        .id("ISS-1")
+        .title("t")
+        .status("s")
+        .project("PRJ-1")
+        .build();
+    let from_newtypes = issue()
+        .id(IssueId::make("ISS-1"))
+        .title("t")
+        .status("s")
+        .project(ProjectId::make("PRJ-1"))
+        .build();
+
+    assert_eq!(from_strings.id().as_str(), from_newtypes.id().as_str());
+    assert_eq!(
+        from_strings.project().map(ProjectId::as_str),
+        from_newtypes.project().map(ProjectId::as_str)
+    );
 }

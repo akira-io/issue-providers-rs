@@ -14,6 +14,18 @@ macro_rules! id_newtype {
                 &self.0
             }
         }
+
+        impl From<&str> for $name {
+            fn from(value: &str) -> Self {
+                Self(value.to_string())
+            }
+        }
+
+        impl From<String> for $name {
+            fn from(value: String) -> Self {
+                Self(value)
+            }
+        }
     };
 }
 
@@ -96,9 +108,9 @@ pub struct IssueBuilder<I, T, S> {
     title: T,
     status: S,
     category: Option<StatusCategory>,
-    project: Option<String>,
-    milestone: Option<String>,
-    assignee: Option<String>,
+    project: Option<ProjectId>,
+    milestone: Option<MilestoneId>,
+    assignee: Option<UserId>,
     priority: Option<u8>,
     updated_at: Option<String>,
 }
@@ -118,7 +130,7 @@ pub fn issue() -> IssueBuilder<Missing, Missing, Missing> {
 }
 
 impl<T, S> IssueBuilder<Missing, T, S> {
-    pub fn id(self, id: impl Into<String>) -> IssueBuilder<Set<String>, T, S> {
+    pub fn id(self, id: impl Into<IssueId>) -> IssueBuilder<Set<IssueId>, T, S> {
         IssueBuilder {
             id: Set(id.into()),
             title: self.title,
@@ -173,19 +185,19 @@ impl<I, T, S> IssueBuilder<I, T, S> {
     }
 
     #[must_use]
-    pub fn project(mut self, project: impl Into<String>) -> Self {
+    pub fn project(mut self, project: impl Into<ProjectId>) -> Self {
         self.project = Some(project.into());
         self
     }
 
     #[must_use]
-    pub fn milestone(mut self, milestone: impl Into<String>) -> Self {
+    pub fn milestone(mut self, milestone: impl Into<MilestoneId>) -> Self {
         self.milestone = Some(milestone.into());
         self
     }
 
     #[must_use]
-    pub fn assignee(mut self, assignee: impl Into<String>) -> Self {
+    pub fn assignee(mut self, assignee: impl Into<UserId>) -> Self {
         self.assignee = Some(assignee.into());
         self
     }
@@ -203,16 +215,16 @@ impl<I, T, S> IssueBuilder<I, T, S> {
     }
 }
 
-impl IssueBuilder<Set<String>, Set<String>, Set<String>> {
+impl IssueBuilder<Set<IssueId>, Set<String>, Set<String>> {
     pub fn build(self) -> Issue {
         Issue {
-            id: IssueId::make(self.id.0),
+            id: self.id.0,
             title: self.title.0,
             status: self.status.0,
             category: self.category,
-            project: self.project.map(ProjectId::make),
-            milestone: self.milestone.map(MilestoneId::make),
-            assignee: self.assignee.map(UserId::make),
+            project: self.project,
+            milestone: self.milestone,
+            assignee: self.assignee,
             priority: self.priority,
             updated_at: self.updated_at.unwrap_or_default(),
         }
