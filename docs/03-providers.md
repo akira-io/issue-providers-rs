@@ -35,9 +35,20 @@ The helper (`linear()`) is what consumers pass to `provider().register(...)`.
 
 No core edits. No central match statement.
 
-## Transport (P2)
+## Transport
 
-Capability implementations back each trait with the provider's API (Linear GraphQL, Jira REST). Transport stays private to the provider crate; only normalized models cross the boundary.
+`linear()` is the descriptor (for the registry). To call capabilities, build a credentialed client:
+
+```rust
+use issue_provider_core::{IssueId, Issues};
+use issue_provider_linear::linear;
+
+let client = linear().token("lin_api_...").build();   // LinearClient
+let page = client.list(None).await?;                   // Issues::list
+let one = client.get(IssueId::make("ISS-1")).await?;   // Issues::get
+```
+
+The GraphQL transport (auth, pagination, retry on transient/empty responses) stays private to the provider crate; only normalized models cross the boundary. Linear's `state.type` maps to `StatusCategory` via `category_from_state_type`.
 
 ---
 
