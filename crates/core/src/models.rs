@@ -96,9 +96,9 @@ pub struct IssueBuilder<I, T, S> {
     title: T,
     status: S,
     category: Option<StatusCategory>,
-    project: Option<ProjectId>,
-    milestone: Option<MilestoneId>,
-    assignee: Option<UserId>,
+    project: Option<String>,
+    milestone: Option<String>,
+    assignee: Option<String>,
     priority: Option<u8>,
     updated_at: Option<String>,
 }
@@ -118,9 +118,9 @@ pub fn issue() -> IssueBuilder<Missing, Missing, Missing> {
 }
 
 impl<T, S> IssueBuilder<Missing, T, S> {
-    pub fn id(self, id: IssueId) -> IssueBuilder<Set<IssueId>, T, S> {
+    pub fn id(self, id: impl Into<String>) -> IssueBuilder<Set<String>, T, S> {
         IssueBuilder {
-            id: Set(id),
+            id: Set(id.into()),
             title: self.title,
             status: self.status,
             category: self.category,
@@ -173,20 +173,20 @@ impl<I, T, S> IssueBuilder<I, T, S> {
     }
 
     #[must_use]
-    pub fn project(mut self, project: ProjectId) -> Self {
-        self.project = Some(project);
+    pub fn project(mut self, project: impl Into<String>) -> Self {
+        self.project = Some(project.into());
         self
     }
 
     #[must_use]
-    pub fn milestone(mut self, milestone: MilestoneId) -> Self {
-        self.milestone = Some(milestone);
+    pub fn milestone(mut self, milestone: impl Into<String>) -> Self {
+        self.milestone = Some(milestone.into());
         self
     }
 
     #[must_use]
-    pub fn assignee(mut self, assignee: UserId) -> Self {
-        self.assignee = Some(assignee);
+    pub fn assignee(mut self, assignee: impl Into<String>) -> Self {
+        self.assignee = Some(assignee.into());
         self
     }
 
@@ -203,16 +203,16 @@ impl<I, T, S> IssueBuilder<I, T, S> {
     }
 }
 
-impl IssueBuilder<Set<IssueId>, Set<String>, Set<String>> {
+impl IssueBuilder<Set<String>, Set<String>, Set<String>> {
     pub fn build(self) -> Issue {
         Issue {
-            id: self.id.0,
+            id: IssueId::make(self.id.0),
             title: self.title.0,
             status: self.status.0,
             category: self.category,
-            project: self.project,
-            milestone: self.milestone,
-            assignee: self.assignee,
+            project: self.project.map(ProjectId::make),
+            milestone: self.milestone.map(MilestoneId::make),
+            assignee: self.assignee.map(UserId::make),
             priority: self.priority,
             updated_at: self.updated_at.unwrap_or_default(),
         }

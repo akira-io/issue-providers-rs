@@ -1,17 +1,15 @@
-use issue_provider_core::{
-    Issue, IssueId, MilestoneId, Project, ProjectId, StatusCategory, UserId, issue,
-};
+use issue_provider_core::{Issue, Project, ProjectId, StatusCategory, issue};
 
 #[test]
 fn issue_round_trips_through_json() -> Result<(), serde_json::Error> {
     let original = issue()
-        .id(IssueId::make("ISS-1"))
+        .id("ISS-1")
         .title("Wire up sync")
         .status("in_progress")
         .category(StatusCategory::Started)
-        .project(ProjectId::make("PRJ-1"))
-        .milestone(MilestoneId::make("MIL-1"))
-        .assignee(UserId::make("USR-1"))
+        .project("PRJ-1")
+        .milestone("MIL-1")
+        .assignee("USR-1")
         .priority(2)
         .updated_at("2026-05-25T00:00:00Z")
         .build();
