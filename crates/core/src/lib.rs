@@ -17,8 +17,9 @@ pub use capabilities::{
 };
 pub use errors::{ErrorBuilder, ErrorKind, IssueError, IssueResult, error};
 pub use models::{
-    Cycle, CycleId, Issue, IssueBuilder, IssueId, Label, LabelId, Milestone, MilestoneId, Missing,
-    Project, ProjectId, Set, StatusCategory, Team, TeamId, User, UserId, issue,
+    Cycle, CycleId, Issue, IssueBuilder, IssueDraft, IssueDraftBuilder, IssueId, IssuePatch,
+    IssuePatchBuilder, Label, LabelId, Milestone, MilestoneId, Missing, Project, ProjectId, Set,
+    StatusCategory, Team, TeamId, User, UserId, issue, issue_draft, issue_patch,
 };
 pub use pagination::{Page, PageCursor, PageRequest, PaginationBuilder, pagination};
 pub use registry::{

@@ -45,9 +45,20 @@ let page = client.list(None).await?;                 // Issues::list
 let one = client.get(IssueId::make("ISS-1")).await?; // Issues::get
 ```
 
+`Issues` also covers mutations (`create`, `update`, `delete`, `close`):
+
+```rust
+use issue_provider_core::{Issues, issue_draft, issue_patch};
+
+let created = client.create(issue_draft().team("TEAM_ID").title("Bug").build()).await?;
+client.update(created.id().clone(), issue_patch().priority(1).build()).await?;
+client.close(created.id().clone()).await?; // sugar over update(category = Completed)
+client.delete(created.id().clone()).await?;
+```
+
 ## Capabilities
 
-`Issues`, `Projects`, `Milestones`, `Cycles`, `Teams`, `Users`, `Labels` — each a provider-neutral trait with `get` / `list` returning paginated results. Persistence (SQLite, etc.) is the consumer's responsibility; this crate only fetches and normalizes.
+`Issues` (`get` / `list` / `create` / `update` / `delete` / `close`) plus read-only `Projects`, `Milestones`, `Cycles`, `Teams`, `Users`, `Labels` (`get` / `list`) — each a provider-neutral trait returning paginated, normalized results. Persistence (SQLite, etc.) is the consumer's responsibility; this crate only fetches and normalizes.
 
 See [docs/](docs/README.md) for architecture, contracts, and provider authoring.
 
