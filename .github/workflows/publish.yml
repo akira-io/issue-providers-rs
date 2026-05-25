@@ -60,7 +60,7 @@ jobs:
           for pkg in ${{ steps.plan.outputs.pkgs }}; do
             published=0
             for attempt in $(seq 1 10); do
-              if cargo publish -p "$pkg"; then
+              if cargo publish -p "$pkg" --allow-dirty; then
                 published=1
                 break
               fi
