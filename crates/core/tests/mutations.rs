@@ -1,43 +1,6 @@
 use issue_provider_core::{
-    BoxFuture, Issue, IssueDraft, IssueId, IssuePatch, IssueResult, Issues, MilestoneId, Page,
-    PageRequest, ProjectId, StatusCategory, TeamId, UserId, issue, issue_draft, issue_patch,
+    MilestoneId, ProjectId, StatusCategory, TeamId, UserId, issue_draft, issue_patch,
 };
-
-struct EchoClient;
-
-impl Issues for EchoClient {
-    fn get(&self, id: IssueId) -> BoxFuture<'_, IssueResult<Issue>> {
-        Box::pin(async move { Ok(issue().id(id).title("got").status("open").build()) })
-    }
-
-    fn list(&self, _page: Option<PageRequest>) -> BoxFuture<'_, IssueResult<Page<Issue>>> {
-        Box::pin(async { Ok(Page::make(Vec::new(), None)) })
-    }
-
-    fn create(&self, draft: IssueDraft) -> BoxFuture<'_, IssueResult<Issue>> {
-        Box::pin(async move {
-            Ok(issue()
-                .id("NEW-1")
-                .title(draft.title().to_string())
-                .status("open")
-                .build())
-        })
-    }
-
-    fn update(&self, id: IssueId, patch: IssuePatch) -> BoxFuture<'_, IssueResult<Issue>> {
-        Box::pin(async move {
-            Ok(issue()
-                .id(id)
-                .title(patch.title().unwrap_or("unchanged").to_string())
-                .status("open")
-                .build())
-        })
-    }
-
-    fn delete(&self, _id: IssueId) -> BoxFuture<'_, IssueResult<()>> {
-        Box::pin(async { Ok(()) })
-    }
-}
 
 #[test]
 fn issue_draft_constructs_with_required_and_optional_fields() {
@@ -97,26 +60,4 @@ fn patch_captures_set_fields() {
     assert_eq!(patch.assignee().map(UserId::as_str), Some("USR-9"));
     assert_eq!(patch.priority(), Some(1));
     assert!(patch.project().is_none());
-}
-
-#[test]
-fn draft_create_terminal_executes_against_client() -> IssueResult<()> {
-    let client = EchoClient;
-    let created =
-        futures::executor::block_on(issue_draft().team("TEAM-1").title("Wired").create(&client))?;
-
-    assert_eq!(created.id().as_str(), "NEW-1");
-    assert_eq!(created.title(), "Wired");
-    Ok(())
-}
-
-#[test]
-fn patch_update_terminal_executes_against_client() -> IssueResult<()> {
-    let client = EchoClient;
-    let updated =
-        futures::executor::block_on(issue_patch().title("Renamed").update(&client, "ISS-7"))?;
-
-    assert_eq!(updated.id().as_str(), "ISS-7");
-    assert_eq!(updated.title(), "Renamed");
-    Ok(())
 }

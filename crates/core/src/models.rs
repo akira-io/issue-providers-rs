@@ -1,8 +1,5 @@
 use serde::{Deserialize, Serialize};
 
-use crate::capabilities::Issues;
-use crate::{BoxFuture, IssueResult};
-
 macro_rules! id_newtype {
     ($name:ident) => {
         #[derive(Clone, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
@@ -385,10 +382,6 @@ impl IssueDraftBuilder<Set<TeamId>, Set<String>> {
             priority: self.priority,
         }
     }
-
-    pub fn create<C: Issues>(self, client: &C) -> BoxFuture<'_, IssueResult<Issue>> {
-        client.create(self.build())
-    }
 }
 
 #[derive(Clone, Debug, Default)]
@@ -496,14 +489,6 @@ impl IssuePatchBuilder {
 
     pub fn build(self) -> IssuePatch {
         self.patch
-    }
-
-    pub fn update<C: Issues>(
-        self,
-        client: &C,
-        id: impl Into<IssueId>,
-    ) -> BoxFuture<'_, IssueResult<Issue>> {
-        client.update(id.into(), self.build())
     }
 }
 

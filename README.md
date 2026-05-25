@@ -56,13 +56,6 @@ client.close(created.id().clone()).await?; // sugar over update(category = Compl
 client.delete(created.id().clone()).await?;
 ```
 
-The draft/patch builders also offer an executing terminal:
-
-```rust
-let created = issue_draft().team("TEAM_ID").title("Bug").create(&client).await?;
-let updated = issue_patch().priority(1).update(&client, created.id().clone()).await?;
-```
-
 ## Capabilities
 
 `Issues` (`get` / `list` / `create` / `update` / `delete` / `close`) plus read-only `Projects`, `Milestones`, `Cycles`, `Teams`, `Users`, `Labels` (`get` / `list`) — each a provider-neutral trait returning paginated, normalized results. Persistence (SQLite, etc.) is the consumer's responsibility; this crate only fetches and normalizes.
