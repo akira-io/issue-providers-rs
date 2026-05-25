@@ -1,6 +1,7 @@
 use issue_provider_core::{Capability, Provider, ProviderDescriptor, ProviderDescriptorBuilder};
 
 mod client;
+mod entities;
 mod issues;
 mod transport;
 
