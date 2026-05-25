@@ -19,21 +19,37 @@ permissions:
 jobs:
   release:
     runs-on: ubuntu-latest
+    env:
+      DISCORD: ${{ secrets.DISCORD }}
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: Set version from tag
+      - uses: dtolnay/rust-toolchain@1.89.0
+
+      - name: Plan release from tag
+        id: plan
         run: |
-          cargo install cargo-edit --locked
           TAG="${GITHUB_REF_NAME}"
           PREFIX="${TAG%%-v*}"
           VERSION="${TAG#*-v}"
           if [ "$PREFIX" = "workspace" ]; then
-            cargo set-version --workspace "$VERSION"
+            SHORTS="$(cargo metadata --no-deps --format-version 1 | jq -r '.packages[] | select(.publish != []) | .name' | sed 's/^issue-provider-//')"
           else
-            cargo set-version -p "issue-provider-${PREFIX}" "$VERSION"
+            SHORTS="$PREFIX"
+          fi
+          echo "prefix=$PREFIX" >> "$GITHUB_OUTPUT"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "shorts=$(echo "$SHORTS" | xargs)" >> "$GITHUB_OUTPUT"
+
+      - name: Set version from tag
+        run: |
+          cargo install cargo-edit --locked
+          if [ "${{ steps.plan.outputs.prefix }}" = "workspace" ]; then
+            cargo set-version --workspace "${{ steps.plan.outputs.version }}"
+          else
+            cargo set-version -p "issue-provider-${{ steps.plan.outputs.prefix }}" "${{ steps.plan.outputs.version }}"
           fi
           cargo update --workspace --offline || cargo update --workspace
 
@@ -42,18 +58,21 @@ jobs:
         with:
           tool: git-cliff
 
-      - name: Generate CHANGELOG
+      - name: Generate per-crate CHANGELOGs
         env:
           GITHUB_TOKEN: ${{ github.token }}
-        run: git-cliff --config cliff.toml --tag "${{ github.ref_name }}" --output CHANGELOG.md
+        run: |
+          for s in ${{ steps.plan.outputs.shorts }}; do
+            git-cliff --config cliff.toml --include-path "crates/${s}/**" --tag "${GITHUB_REF_NAME}" --output "crates/${s}/CHANGELOG.md"
+          done
 
-      - name: Commit version and changelog
+      - name: Commit versions and changelogs
         run: |
           git config user.name "${GITHUB_ACTOR}"
           git config user.email "${GITHUB_ACTOR}@users.noreply.github.com"
           DEFAULT_BRANCH="$(git remote show origin | sed -n 's/.*HEAD branch: //p')"
           git add -A
-          git diff --cached --quiet || git commit -m "chore(release): ${{ github.ref_name }}"
+          git diff --cached --quiet || git commit -m "chore(release): ${GITHUB_REF_NAME}"
           git push origin "HEAD:${DEFAULT_BRANCH}" || true
 
       - name: Extract release notes
@@ -61,9 +80,14 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ github.token }}
         run: |
+          PREFIX="${{ steps.plan.outputs.prefix }}"
           {
             echo 'body<<EOF'
-            git-cliff --config cliff.toml --latest --strip all
+            if [ "$PREFIX" = "workspace" ]; then
+              git-cliff --config cliff.toml --latest --strip all
+            else
+              git-cliff --config cliff.toml --include-path "crates/${PREFIX}/**" --latest --strip all
+            fi
             echo 'EOF'
           } >> "$GITHUB_OUTPUT"
 
@@ -71,8 +95,24 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release delete "${{ github.ref_name }}" --yes 2>/dev/null || true
-          gh release create "${{ github.ref_name }}" \
-            --title "${{ github.ref_name }}" \
+          gh release delete "${GITHUB_REF_NAME}" --yes 2>/dev/null || true
+          gh release create "${GITHUB_REF_NAME}" \
+            --title "${GITHUB_REF_NAME}" \
             --notes "${{ steps.notes.outputs.body }}" \
             --latest
+
+      - name: Send GitHub Release to Discord
+        if: ${{ env.DISCORD != '' }}
+        uses: SethCohen/github-releases-to-discord@v1.20.0
+        with:
+          webhook_url: ${{ secrets.DISCORD }}
+          release_name: ${{ github.ref_name }}
+          release_body: ${{ steps.notes.outputs.body }}
+          release_html_url: https://github.com/${{ github.repository }}/releases/tag/${{ github.ref_name }}
+          color: "3447003"
+          username: "GitHub Releases"
+          avatar_url: "https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png"
+          content: "New issue-providers-rs release published."
+          footer_title: "akira-io/issue-providers-rs"
+          footer_icon_url: "https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png"
+          footer_timestamp: true
