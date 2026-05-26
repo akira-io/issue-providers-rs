@@ -22,11 +22,12 @@ jobs:
     env:
       DISCORD: ${{ secrets.DISCORD }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           fetch-depth: 0
 
-      - uses: dtolnay/rust-toolchain@1.89.0
+      - name: Install Rust
+        run: rustup toolchain install 1.89.0 --profile minimal && rustup default 1.89.0
 
       - name: Plan release from tag
         id: plan
@@ -54,7 +55,7 @@ jobs:
           cargo update --workspace --offline || cargo update --workspace
 
       - name: Install git-cliff
-        uses: taiki-e/install-action@v2
+        uses: taiki-e/install-action@8f531eaecd1898bc3da7d104ad91bee98d1b97bd # v2.79.9
         with:
           tool: git-cliff
 
@@ -103,7 +104,7 @@ jobs:
 
       - name: Send GitHub Release to Discord
         if: ${{ env.DISCORD != '' }}
-        uses: SethCohen/github-releases-to-discord@v1.20.0
+        uses: SethCohen/github-releases-to-discord@24d166886aee4646d448c8a389ff9e1ebcab3682 # v1.20.0
         with:
           webhook_url: ${{ secrets.DISCORD }}
           release_name: ${{ github.ref_name }}
