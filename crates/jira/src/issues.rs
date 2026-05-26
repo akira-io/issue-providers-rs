@@ -6,7 +6,7 @@ use reqwest::Method;
 use serde::Deserialize;
 
 use crate::client::JiraClient;
-use crate::model::{map_issue, IssueNode, ISSUE_FIELDS};
+use crate::model::{ISSUE_FIELDS, IssueNode, map_issue};
 
 fn jql_category(category: StatusCategory) -> &'static str {
     match category {

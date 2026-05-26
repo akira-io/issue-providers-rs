@@ -1,4 +1,4 @@
-use issue_provider_core::{error, ErrorKind, IssueResult, StatusCategory};
+use issue_provider_core::{ErrorKind, IssueResult, StatusCategory, error};
 use reqwest::Method;
 use serde::Deserialize;
 

@@ -1,6 +1,6 @@
 use issue_provider_core::{
-    BoxFuture, IssueResult, Label, LabelId, Labels, Page, PageRequest, Project, ProjectId, Projects,
-    User, UserId, Users,
+    BoxFuture, IssueResult, Label, LabelId, Labels, Page, PageRequest, Project, ProjectId,
+    Projects, User, UserId, Users,
 };
 use reqwest::Method;
 use serde::Deserialize;

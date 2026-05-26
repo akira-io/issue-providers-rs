@@ -1,10 +1,9 @@
-use issue_provider_core::{issue, Issue, StatusCategory};
+use issue_provider_core::{Issue, StatusCategory, issue};
 use serde::Deserialize;
 
 use crate::util::adf_text;
 
-pub(crate) const ISSUE_FIELDS: &str =
-    "summary,status,project,assignee,reporter,labels,priority,created,updated,fixVersions,description";
+pub(crate) const ISSUE_FIELDS: &str = "summary,status,project,assignee,reporter,labels,priority,created,updated,fixVersions,description";
 
 #[derive(Deserialize)]
 pub(crate) struct IssueNode {

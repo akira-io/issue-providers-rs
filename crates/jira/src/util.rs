@@ -63,7 +63,10 @@ mod tests {
     fn offset_cursor_stops_on_last_or_short_page() {
         assert_eq!(offset_cursor(Some(true), 0, 50, 50), None);
         assert_eq!(offset_cursor(None, 0, 10, 50), None);
-        assert_eq!(offset_cursor(Some(false), 50, 50, 50), Some(PageCursor::make("100")));
+        assert_eq!(
+            offset_cursor(Some(false), 50, 50, 50),
+            Some(PageCursor::make("100"))
+        );
         assert_eq!(offset_cursor(None, 0, 50, 50), Some(PageCursor::make("50")));
     }
 

@@ -14,7 +14,9 @@ impl Viewer for JiraClient {
                 display_name: Option<String>,
             }
 
-            let me: Myself = self.request(Method::GET, "/rest/api/3/myself", None).await?;
+            let me: Myself = self
+                .request(Method::GET, "/rest/api/3/myself", None)
+                .await?;
             Ok(User::make(
                 UserId::make(me.account_id),
                 me.display_name.unwrap_or_default(),
