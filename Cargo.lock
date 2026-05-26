@@ -412,6 +412,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "issue-provider-jira"
+version = "0.2.0"
+dependencies = [
+ "issue-provider-core",
+ "reqwest",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
 name = "issue-provider-linear"
 version = "0.2.0"
 dependencies = [
