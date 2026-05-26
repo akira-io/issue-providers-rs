@@ -2,6 +2,20 @@
 
 All notable changes to this project are documented in this file.
 
+## [jira-v0.2.0] - 2026-05-26
+
+
+### Features
+
+- Add OAuth bearer auth and api gateway base ([#21](https://github.com/akira-io/issue-providers-rs/issues/21)) ([627fe4c](akira-io/issue-providers-rs/commit/627fe4cdebf521c67cf2f63736fb95ec03872a9d))
+
+
+
+### Maintenance
+
+- Jira-v0.1.0 ([ef1848f](akira-io/issue-providers-rs/commit/ef1848fb1c00e0bc0df00af6a3b7be2296436f4e))
+
+
 ## [jira-v0.1.0] - 2026-05-26
 
 
