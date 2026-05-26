@@ -1,19 +1,37 @@
+const API_GATEWAY: &str = "https://api.atlassian.com/ex/jira";
+
+#[derive(Clone)]
+pub(crate) enum JiraAuth {
+    Basic { email: String, token: String },
+    Bearer { token: String },
+}
+
 pub struct JiraClientBuilder {
     base_url: String,
-    email: String,
-    token: String,
+    auth: JiraAuth,
 }
 
 impl JiraClientBuilder {
-    pub(crate) fn new(
+    pub(crate) fn basic(
         base_url: impl Into<String>,
         email: impl Into<String>,
         token: impl Into<String>,
     ) -> Self {
         Self {
             base_url: base_url.into(),
-            email: email.into(),
-            token: token.into(),
+            auth: JiraAuth::Basic {
+                email: email.into(),
+                token: token.into(),
+            },
+        }
+    }
+
+    pub(crate) fn bearer(cloud_id: impl Into<String>, access_token: impl Into<String>) -> Self {
+        Self {
+            base_url: format!("{API_GATEWAY}/{}", cloud_id.into()),
+            auth: JiraAuth::Bearer {
+                token: access_token.into(),
+            },
         }
     }
 
@@ -21,8 +39,7 @@ impl JiraClientBuilder {
         JiraClient {
             http: reqwest::Client::new(),
             base_url: self.base_url,
-            email: self.email,
-            token: self.token,
+            auth: self.auth,
         }
     }
 }
@@ -31,6 +48,27 @@ impl JiraClientBuilder {
 pub struct JiraClient {
     pub(crate) http: reqwest::Client,
     pub(crate) base_url: String,
-    pub(crate) email: String,
-    pub(crate) token: String,
+    pub(crate) auth: JiraAuth,
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn bearer_targets_the_oauth_gateway() {
+        let client = JiraClientBuilder::bearer("cloud-123", "tok").build();
+        assert_eq!(
+            client.base_url,
+            "https://api.atlassian.com/ex/jira/cloud-123"
+        );
+        assert!(matches!(client.auth, JiraAuth::Bearer { .. }));
+    }
+
+    #[test]
+    fn basic_keeps_the_site_base() {
+        let client = JiraClientBuilder::basic("https://x.atlassian.net", "me@x.com", "tok").build();
+        assert_eq!(client.base_url, "https://x.atlassian.net");
+        assert!(matches!(client.auth, JiraAuth::Basic { .. }));
+    }
 }

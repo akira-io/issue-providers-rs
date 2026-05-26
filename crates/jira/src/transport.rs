@@ -2,7 +2,7 @@ use issue_provider_core::{ErrorKind, IssueError, IssueResult, error};
 use reqwest::Method;
 use serde::de::DeserializeOwned;
 
-use crate::client::JiraClient;
+use crate::client::{JiraAuth, JiraClient};
 
 const MAX_ATTEMPTS: u32 = 3;
 
@@ -29,8 +29,11 @@ impl JiraClient {
             let mut request = self
                 .http
                 .request(method.clone(), &url)
-                .basic_auth(&self.email, Some(&self.token))
                 .header("Accept", "application/json");
+            request = match &self.auth {
+                JiraAuth::Basic { email, token } => request.basic_auth(email, Some(token)),
+                JiraAuth::Bearer { token } => request.bearer_auth(token),
+            };
             if let Some(body) = body {
                 request = request.json(body);
             }
