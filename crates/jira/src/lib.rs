@@ -26,7 +26,15 @@ impl JiraProvider {
         email: impl Into<String>,
         token: impl Into<String>,
     ) -> JiraClientBuilder {
-        JiraClientBuilder::new(base_url, email, token)
+        JiraClientBuilder::basic(base_url, email, token)
+    }
+
+    pub fn bearer(
+        self,
+        cloud_id: impl Into<String>,
+        access_token: impl Into<String>,
+    ) -> JiraClientBuilder {
+        JiraClientBuilder::bearer(cloud_id, access_token)
     }
 }
 
