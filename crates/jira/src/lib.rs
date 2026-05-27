@@ -5,6 +5,7 @@ mod comments;
 mod entities;
 mod issues;
 mod model;
+mod resources;
 mod transitions;
 mod transport;
 mod util;
@@ -12,6 +13,7 @@ mod viewer;
 
 pub use client::{JiraClient, JiraClientBuilder};
 pub use model::category_from_status_category;
+pub use resources::{JiraSite, accessible_resources};
 
 pub const PROVIDER_ID: &str = "jira";
 pub const DISPLAY_NAME: &str = "Jira";
