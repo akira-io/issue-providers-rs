@@ -2,6 +2,20 @@
 
 All notable changes to this project are documented in this file.
 
+## [jira-v0.3.0] - 2026-05-27
+
+
+### Features
+
+- Add accessible_resources for OAuth cloud-id discovery ([#22](https://github.com/akira-io/issue-providers-rs/issues/22)) ([36711ef](akira-io/issue-providers-rs/commit/36711efa2ec7f8a90da9aac9411254d9983c4898))
+
+
+
+### Maintenance
+
+- Jira-v0.2.0 ([e34d18c](akira-io/issue-providers-rs/commit/e34d18c006cdc90921a8160fa50db08812efd125))
+
+
 ## [jira-v0.2.0] - 2026-05-26
 
 
