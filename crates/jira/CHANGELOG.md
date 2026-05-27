@@ -2,6 +2,20 @@
 
 All notable changes to this project are documented in this file.
 
+## [jira-v0.5.0] - 2026-05-27
+
+
+### Bug Fixes
+
+- Bounded JQL + ADF markdown descriptions ([#23](https://github.com/akira-io/issue-providers-rs/issues/23)) ([7238414](akira-io/issue-providers-rs/commit/7238414eebd668f01206f4836bf8925892c059ec))
+
+
+
+### Maintenance
+
+- Jira-v0.3.0 ([84767fc](akira-io/issue-providers-rs/commit/84767fc82cbe2bff0edc87329c066ae8c341ef81))
+
+
 ## [jira-v0.3.0] - 2026-05-27
 
 
