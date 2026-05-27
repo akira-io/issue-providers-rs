@@ -32,11 +32,12 @@ fn build_jql(filter: &IssueFilter) -> String {
         clauses.push(format!("statusCategory = \"{}\"", jql_category(category)));
     }
 
-    let mut jql = clauses.join(" AND ");
-    if !jql.is_empty() {
-        jql.push(' ');
+    if clauses.is_empty() {
+        clauses.push("created >= \"1970/01/01\"".to_string());
     }
-    jql.push_str("ORDER BY updated DESC");
+
+    let mut jql = clauses.join(" AND ");
+    jql.push_str(" ORDER BY updated DESC");
     jql
 }
 
@@ -208,8 +209,11 @@ mod tests {
     use issue_provider_core::issue_filter;
 
     #[test]
-    fn build_jql_orders_when_empty() {
-        assert_eq!(build_jql(&IssueFilter::default()), "ORDER BY updated DESC");
+    fn build_jql_bounds_and_orders_when_empty() {
+        assert_eq!(
+            build_jql(&IssueFilter::default()),
+            "created >= \"1970/01/01\" ORDER BY updated DESC"
+        );
     }
 
     #[test]
