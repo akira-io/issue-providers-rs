@@ -1,6 +1,4 @@
-use omnitrack::{
-    MilestoneId, ProjectId, StatusCategory, TeamId, UserId, issue_draft, issue_patch,
-};
+use omnitrack::{MilestoneId, ProjectId, StatusCategory, TeamId, UserId, issue_draft, issue_patch};
 
 #[test]
 fn issue_draft_constructs_with_required_and_optional_fields() {

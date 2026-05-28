@@ -1,6 +1,4 @@
-use omnitrack::{
-    Capability, Provider, ProviderDescriptor, ProviderDescriptorBuilder, provider,
-};
+use omnitrack::{Capability, Provider, ProviderDescriptor, ProviderDescriptorBuilder, provider};
 
 struct Dummy(&'static str);
 

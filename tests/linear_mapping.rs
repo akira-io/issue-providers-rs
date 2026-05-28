@@ -40,8 +40,8 @@ fn unknown_state_type_is_none() {
 
 #[test]
 fn provider_descriptor_supports_issue_capability() {
-    use omnitrack::{Capability, Provider};
     use omnitrack::linear::linear;
+    use omnitrack::{Capability, Provider};
 
     assert!(linear().descriptor().supports(Capability::Issues));
 }

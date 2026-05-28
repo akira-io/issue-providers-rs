@@ -1,5 +1,5 @@
-use omnitrack::{IssueFilter, IssueResult, Issues, provider};
 use omnitrack::linear::linear;
+use omnitrack::{IssueFilter, IssueResult, Issues, provider};
 
 #[tokio::main]
 async fn main() -> IssueResult<()> {
