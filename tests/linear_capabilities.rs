@@ -1,5 +1,5 @@
-use omnitrack::{Capability, Provider};
 use omnitrack::linear::linear;
+use omnitrack::{Capability, Provider};
 
 #[test]
 fn descriptor_supports_all_named_capabilities() {
