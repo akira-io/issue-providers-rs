@@ -3,14 +3,8 @@ name: publish
 on:
   push:
     tags:
-      - "core-v[0-9]+.[0-9]+.[0-9]+"
-      - "core-v[0-9]+.[0-9]+.[0-9]+-*"
-      - "linear-v[0-9]+.[0-9]+.[0-9]+"
-      - "linear-v[0-9]+.[0-9]+.[0-9]+-*"
-      - "jira-v[0-9]+.[0-9]+.[0-9]+"
-      - "jira-v[0-9]+.[0-9]+.[0-9]+-*"
-      - "workspace-v[0-9]+.[0-9]+.[0-9]+"
-      - "workspace-v[0-9]+.[0-9]+.[0-9]+-*"
+      - "v[0-9]+.[0-9]+.[0-9]+"
+      - "v[0-9]+.[0-9]+.[0-9]+-*"
 
 permissions:
   contents: read
@@ -21,55 +15,22 @@ jobs:
     runs-on: ubuntu-latest
     environment: release
     steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
 
       - name: Install Rust
         run: rustup toolchain install 1.89.0 --profile minimal && rustup default 1.89.0
 
-      - name: Set versions and resolve packages from tag
-        id: plan
+      - name: Bump crate version from tag
         run: |
           cargo install cargo-edit --locked
-          TAG="${GITHUB_REF_NAME}"
-          PREFIX="${TAG%%-v*}"
-          VERSION="${TAG#*-v}"
-          if [ "$PREFIX" = "workspace" ]; then
-            cargo set-version --workspace "$VERSION"
-            PKGS="$(cargo metadata --no-deps --format-version 1 | jq -r '.packages[] | select(.publish != []) | .name')"
-          else
-            PKG="issue-provider-${PREFIX}"
-            cargo set-version -p "$PKG" "$VERSION"
-            PKGS="$PKG"
-          fi
-          ORDERED=""
-          if echo "$PKGS" | grep -qx "issue-provider-core"; then
-            ORDERED="issue-provider-core"
-          fi
-          for p in $PKGS; do
-            [ "$p" = "issue-provider-core" ] || ORDERED="${ORDERED} ${p}"
-          done
-          echo "pkgs=$(echo "$ORDERED" | xargs)" >> "$GITHUB_OUTPUT"
+          VERSION="${GITHUB_REF_NAME#v}"
+          cargo set-version "$VERSION"
 
       - name: Authenticate to crates.io via Trusted Publishing
-        uses: rust-lang/crates-io-auth-action@bbd81622f20ce9e2dd9622e3218b975523e45bbe # v1.0.4
+        uses: rust-lang/crates-io-auth-action@bbd81622f20ce9e2dd9622e3218b975523e45bbe
         id: auth
 
-      - name: Publish ${{ steps.plan.outputs.pkgs }}
+      - name: Publish omnitrack
         env:
           CARGO_REGISTRY_TOKEN: ${{ steps.auth.outputs.token }}
-        run: |
-          for pkg in ${{ steps.plan.outputs.pkgs }}; do
-            published=0
-            for attempt in $(seq 1 10); do
-              if cargo publish -p "$pkg" --allow-dirty; then
-                published=1
-                break
-              fi
-              echo "${pkg} dependencies not resolvable yet (attempt ${attempt}); retrying in 30s"
-              sleep 30
-            done
-            if [ "$published" != "1" ]; then
-              echo "failed to publish ${pkg}"
-              exit 1
-            fi
-          done
+        run: cargo publish --allow-dirty

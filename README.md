@@ -1,68 +1,90 @@
-# issue-providers-rs
+<p align="center">
+  <img src="assets/banner.svg" alt="omnitrack" />
+</p>
 
-Universal async-first issue-tracker provider abstraction layer for Rust.
+<p align="center">
+  <a href="https://crates.io/crates/omnitrack"><img src="https://img.shields.io/crates/v/omnitrack.svg" alt="crates.io"></a>
+  <a href="https://crates.io/crates/omnitrack"><img src="https://img.shields.io/crates/d/omnitrack.svg" alt="downloads"></a>
+  <a href="https://docs.rs/omnitrack"><img src="https://img.shields.io/docsrs/omnitrack" alt="docs.rs"></a>
+  <a href="https://github.com/akira-io/omnitrack-rs/actions/workflows/test.yml"><img src="https://github.com/akira-io/omnitrack-rs/actions/workflows/test.yml/badge.svg" alt="tests"></a>
+  <img src="https://img.shields.io/crates/l/omnitrack.svg" alt="license">
+  <img src="https://img.shields.io/badge/MSRV-1.89-blue" alt="MSRV">
+</p>
 
-This is the issue-tracker counterpart to `vcs-providers-rs`. It is not a Linear or Jira SDK; Linear, Jira, and future trackers are driver implementations behind provider-neutral contracts.
+`omnitrack` is a universal issue-tracker provider abstraction for Rust. Linear and Jira ship as
+driver modules behind feature flags inside a single crate; provider-neutral contracts (issues,
+comments, labels, milestones, projects, teams, cycles, registry, pagination, errors) live at the
+crate root so consumers code against one surface regardless of the backend.
 
-## Layout
+## Install
 
-```text
-issue-providers-rs/
-├── crates/
-│   ├── core/      # issue-provider-core — neutral contracts (Issue, Project, Milestone, ...)
-│   └── linear/    # issue-provider-linear — Linear driver
-└── examples/
+CLI:
+
+```sh
+# Default: Linear driver
+cargo add omnitrack
+
+# Jira only
+cargo add omnitrack --no-default-features --features jira
+
+# All providers
+cargo add omnitrack --features all
+
+# Contracts only, no driver
+cargo add omnitrack --no-default-features
 ```
 
-## Usage
+By hand in `Cargo.toml`:
 
-```rust
-use issue_provider_core::{provider, IssueResult};
-use issue_provider_linear::linear;
+```toml
+omnitrack = "0.3"
+omnitrack = { version = "0.3", default-features = false, features = ["jira"] }
+omnitrack = { version = "0.3", features = ["all"] }
+omnitrack = { version = "0.3", default-features = false }
+```
 
-fn main() -> IssueResult<()> {
-    let registry = provider()
-        .register(linear())?
-        // .register(jira())?   // later
-        .build();
+## Quick start
 
+```rust,no_run
+use omnitrack::{IssueFilter, IssueResult, Issues, provider};
+use omnitrack::linear::linear;
+
+#[tokio::main]
+async fn main() -> IssueResult<()> {
+    let registry = provider().register(linear())?.build();
     for descriptor in registry.descriptors() {
         println!("{} ({})", descriptor.display_name(), descriptor.id().as_str());
     }
 
+    let token = std::env::var("LINEAR_TOKEN").unwrap_or_default();
+    let client = linear().token(token).build();
+    let page = client.list(IssueFilter::default(), None).await?;
+    println!("fetched {} issue(s)", page.items().len());
     Ok(())
 }
 ```
 
-To call a provider, build a credentialed client:
+## Documentation
 
-```rust
-use issue_provider_core::{IssueFilter, IssueId, Issues, issue_filter, StatusCategory};
-use issue_provider_linear::linear;
+Full documentation lives in this repository under `docs/`. Each driver also ships its own usage
+guide:
 
-let client = linear().token("lin_api_...").build();
-let page = client.list(IssueFilter::default(), None).await?;             // all issues
-let mine = client.list(issue_filter().category(StatusCategory::Started).build(), None).await?;
-let one = client.get(IssueId::make("ISS-1")).await?;                     // Issues::get
+- Core contracts: `docs/00-overview.md`
+- Linear driver: `docs/linear/`
+- Jira driver: `docs/jira/`
+- API reference on docs.rs: https://docs.rs/omnitrack
+
+## Testing
+
+```sh
+cargo test --all-features
 ```
-
-`Issues` also covers mutations (`create`, `update`, `delete`, `close`):
-
-```rust
-use issue_provider_core::{Issues, issue_draft, issue_patch};
-
-let created = client.create(issue_draft().team("TEAM_ID").title("Bug").build()).await?;
-client.update(created.id().clone(), issue_patch().priority(1).build()).await?;
-client.close(created.id().clone()).await?; // sugar over update(category = Completed)
-client.delete(created.id().clone()).await?;
-```
-
-## Capabilities
-
-`Issues` (`get` / `list` / `create` / `update` / `delete` / `close`) plus read-only `Projects`, `Milestones`, `Cycles`, `Teams`, `Users`, `Labels` (`get` / `list`) — each a provider-neutral trait returning paginated, normalized results. Persistence (SQLite, etc.) is the consumer's responsibility; this crate only fetches and normalizes.
-
-See [docs/](docs/README.md) for architecture, contracts, and provider authoring.
 
 ## License
 
-MIT OR Apache-2.0
+Licensed under either of:
+
+- Apache License, Version 2.0 ([LICENSE-APACHE](LICENSE-APACHE))
+- MIT License ([LICENSE-MIT](LICENSE-MIT))
+
+at your option.
