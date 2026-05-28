@@ -3,14 +3,8 @@ name: release
 on:
   push:
     tags:
-      - "core-v[0-9]+.[0-9]+.[0-9]+"
-      - "core-v[0-9]+.[0-9]+.[0-9]+-*"
-      - "linear-v[0-9]+.[0-9]+.[0-9]+"
-      - "linear-v[0-9]+.[0-9]+.[0-9]+-*"
-      - "jira-v[0-9]+.[0-9]+.[0-9]+"
-      - "jira-v[0-9]+.[0-9]+.[0-9]+-*"
-      - "workspace-v[0-9]+.[0-9]+.[0-9]+"
-      - "workspace-v[0-9]+.[0-9]+.[0-9]+-*"
+      - "v[0-9]+.[0-9]+.[0-9]+"
+      - "v[0-9]+.[0-9]+.[0-9]+-*"
 
 permissions:
   contents: write
@@ -19,61 +13,45 @@ permissions:
 jobs:
   release:
     runs-on: ubuntu-latest
-    env:
-      DISCORD: ${{ secrets.DISCORD }}
     steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
         with:
           fetch-depth: 0
 
       - name: Install Rust
         run: rustup toolchain install 1.89.0 --profile minimal && rustup default 1.89.0
 
-      - name: Plan release from tag
+      - name: Resolve version from tag
         id: plan
         run: |
           TAG="${GITHUB_REF_NAME}"
-          PREFIX="${TAG%%-v*}"
-          VERSION="${TAG#*-v}"
-          if [ "$PREFIX" = "workspace" ]; then
-            SHORTS="$(cargo metadata --no-deps --format-version 1 | jq -r '.packages[] | select(.publish != []) | .name' | sed 's/^issue-provider-//')"
-          else
-            SHORTS="$PREFIX"
-          fi
-          echo "prefix=$PREFIX" >> "$GITHUB_OUTPUT"
+          VERSION="${TAG#v}"
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
-          echo "shorts=$(echo "$SHORTS" | xargs)" >> "$GITHUB_OUTPUT"
 
-      - name: Set version from tag
+      - name: Bump crate version
         run: |
           cargo install cargo-edit --locked
-          if [ "${{ steps.plan.outputs.prefix }}" = "workspace" ]; then
-            cargo set-version --workspace "${{ steps.plan.outputs.version }}"
-          else
-            cargo set-version -p "issue-provider-${{ steps.plan.outputs.prefix }}" "${{ steps.plan.outputs.version }}"
-          fi
-          cargo update --workspace --offline || cargo update --workspace
+          cargo set-version "${{ steps.plan.outputs.version }}"
+          cargo update --offline || cargo update
 
       - name: Install git-cliff
-        uses: taiki-e/install-action@8f531eaecd1898bc3da7d104ad91bee98d1b97bd # v2.79.9
+        uses: taiki-e/install-action@8f531eaecd1898bc3da7d104ad91bee98d1b97bd
         with:
           tool: git-cliff
 
-      - name: Generate per-crate CHANGELOGs
+      - name: Generate CHANGELOG
         env:
           GITHUB_TOKEN: ${{ github.token }}
-        run: |
-          for s in ${{ steps.plan.outputs.shorts }}; do
-            git-cliff --config cliff.toml --include-path "crates/${s}/**" --tag "${{ steps.plan.outputs.version }}" --output "crates/${s}/CHANGELOG.md"
-          done
+        run: git-cliff --config cliff.toml --tag "${{ steps.plan.outputs.tag }}" --output CHANGELOG.md
 
-      - name: Commit versions and changelogs
+      - name: Commit version bump and changelog
         run: |
           git config user.name "${GITHUB_ACTOR}"
           git config user.email "${GITHUB_ACTOR}@users.noreply.github.com"
           DEFAULT_BRANCH="$(git remote show origin | sed -n 's/.*HEAD branch: //p')"
           git add -A
-          git diff --cached --quiet || git commit -m "chore(release): ${GITHUB_REF_NAME}"
+          git diff --cached --quiet || git commit -m "chore(release): ${{ steps.plan.outputs.tag }}"
           git push origin "HEAD:${DEFAULT_BRANCH}" || true
 
       - name: Extract release notes
@@ -81,14 +59,9 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ github.token }}
         run: |
-          PREFIX="${{ steps.plan.outputs.prefix }}"
           {
             echo 'body<<EOF'
-            if [ "$PREFIX" = "workspace" ]; then
-              git-cliff --config cliff.toml --latest --strip all
-            else
-              git-cliff --config cliff.toml --include-path "crates/${PREFIX}/**" --latest --strip all
-            fi
+            git-cliff --config cliff.toml --latest --strip all
             echo 'EOF'
           } >> "$GITHUB_OUTPUT"
 
@@ -96,15 +69,14 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release delete "${GITHUB_REF_NAME}" --yes 2>/dev/null || true
-          gh release create "${GITHUB_REF_NAME}" \
-            --title "${GITHUB_REF_NAME}" \
+          gh release delete "${{ github.ref_name }}" --yes 2>/dev/null || true
+          gh release create "${{ github.ref_name }}" \
+            --title "${{ github.ref_name }}" \
             --notes "${{ steps.notes.outputs.body }}" \
             --latest
 
       - name: Send GitHub Release to Discord
-        if: ${{ env.DISCORD != '' }}
-        uses: SethCohen/github-releases-to-discord@24d166886aee4646d448c8a389ff9e1ebcab3682 # v1.20.0
+        uses: SethCohen/github-releases-to-discord@24d166886aee4646d448c8a389ff9e1ebcab3682
         with:
           webhook_url: ${{ secrets.DISCORD }}
           release_name: ${{ github.ref_name }}
@@ -113,7 +85,7 @@ jobs:
           color: "3447003"
           username: "GitHub Releases"
           avatar_url: "https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png"
-          content: "New issue-providers-rs release published."
-          footer_title: "akira-io/issue-providers-rs"
+          content: "New omnitrack-rs release published."
+          footer_title: "akira-io/omnitrack-rs"
           footer_icon_url: "https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png"
           footer_timestamp: true

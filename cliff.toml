@@ -22,7 +22,7 @@ conventional_commits = true
 filter_unconventional = true
 split_commits = false
 commit_preprocessors = [
-  { pattern = '\((\w+\s)?#([0-9]+)\)', replace = "([#${2}](https://github.com/akira-io/issue-providers-rs/issues/${2}))" },
+  { pattern = '\((\w+\s)?#([0-9]+)\)', replace = "([#${2}](https://github.com/akira-io/git-cognition-rs/issues/${2}))" },
 ]
 commit_parsers = [
   { message = "^feat", group = "Features" },
@@ -36,10 +36,10 @@ commit_parsers = [
 ]
 protect_breaking_commits = true
 filter_commits = false
-tag_pattern = "[a-z]+-v[0-9]*"
+tag_pattern = "v[0-9]*"
 topo_order = false
 sort_commits = "oldest"
 
 [remote.github]
 owner = "akira-io"
-repo = "issue-providers-rs"
+repo = "git-cognition-rs"
