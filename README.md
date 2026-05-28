@@ -80,11 +80,31 @@ guide:
 cargo test --all-features
 ```
 
+## Changelog
+
+Please see [CHANGELOG.md](CHANGELOG.md) for what has changed recently. The changelog is generated
+from conventional commits via [git-cliff](https://git-cliff.org) on every release tag.
+
+## Contributing
+
+Please see [CONTRIBUTING.md](CONTRIBUTING.md) for details.
+
+## Security Vulnerabilities
+
+Please review [our security policy](SECURITY.md) on how to report security vulnerabilities.
+
+## Credits
+
+- [kid](https://github.com/kidiatoliny)
+- [All Contributors](https://github.com/akira-io/omnitrack-rs/graphs/contributors)
+
 ## License
 
-Licensed under either of:
+Dual-licensed under either of the following, at your option:
 
-- Apache License, Version 2.0 ([LICENSE-APACHE](LICENSE-APACHE))
-- MIT License ([LICENSE-MIT](LICENSE-MIT))
+- MIT License ([LICENSE-MIT](LICENSE-MIT) or https://opensource.org/licenses/MIT)
+- Apache License 2.0 ([LICENSE-APACHE](LICENSE-APACHE) or https://www.apache.org/licenses/LICENSE-2.0)
 
-at your option.
+Unless you explicitly state otherwise, any contribution intentionally submitted for inclusion in
+this crate by you, as defined in the Apache-2.0 license, shall be dual-licensed as above, without
+any additional terms or conditions.
